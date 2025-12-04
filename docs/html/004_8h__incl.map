@@ -1,7 +1,5 @@
 <map id="004.h" name="004.h">
-<area shape="rect" id="node1" title=" " alt="" coords="141,5,195,32"/>
-<area shape="rect" id="node2" title=" " alt="" coords="5,80,77,107"/>
-<area shape="rect" id="node3" title=" " alt="" coords="102,80,157,107"/>
-<area shape="rect" id="node4" href="$003_8h.html" title=" " alt="" coords="181,80,235,107"/>
-<area shape="rect" id="node5" href="$001_8h.html" title=" " alt="" coords="259,80,314,107"/>
+<area shape="rect" id="node1" title=" " alt="" coords="44,5,99,32"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,80,60,107"/>
+<area shape="rect" id="node3" href="$003_8h.html" title=" " alt="" coords="84,80,139,107"/>
 </map>
