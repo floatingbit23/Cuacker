@@ -1,0 +1,21 @@
+// Módulo del 003.cpp
+#ifndef MODULO_003_H
+#define MODULO_003_H
+
+// Clase Fecha
+class Fecha {
+
+	private:
+		int dia, mes, ano, hora, minuto, segundo;
+
+	public:
+
+		void leer_fecha();
+		void escribir_fecha();
+		bool es_menor(Fecha &otra);
+		bool es_igual(Fecha &otra);
+};
+
+#endif
+
+
