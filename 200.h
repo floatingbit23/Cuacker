@@ -2,11 +2,10 @@
 #define MODULO_200_H
 
 #include "004.h"
-#include <iostream>
 #include<string>
 #include<list>
 
-//opcion 2 de alamacenamiento
+//opcion 2 de almacenamiento
 class TablaHash
 {
 private:

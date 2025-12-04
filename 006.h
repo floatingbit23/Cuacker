@@ -6,7 +6,6 @@
 #include "300.h"
 
 #include<string>
-#include<list>
 using namespace std;
 
 // Implementación recomendada por la presentación

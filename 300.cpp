@@ -1,5 +1,6 @@
 #include "300.h"
 #include <list>
+#include<iostream>
 
 // constructor
 Arbol_AVL::Arbol_AVL() {

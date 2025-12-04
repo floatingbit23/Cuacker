@@ -1,6 +1,6 @@
-#include "006.h"
-
 #include<iostream>
+#include<list>
+#include "006.h"
 using namespace std;
 
 // Implementación del Constructor
@@ -48,9 +48,9 @@ bool es_anterior(Cuac &nuevo, Cuac &actual){
 
 // Método insertar()
 void DiccionarioCuacs::insertar(Cuac &nuevo){
-    Cuac* pt = tabla.insertar(nuevo);
+    Cuac* pt = tabla.insertar(nuevo); // inserta en tablaHash y almacena dir de memoria
     if (pt != nullptr) {
-        arbol.insertar(pt);
+        arbol.insertar(pt); // si dir no es null, almacena en el AVL
     }
 }
 

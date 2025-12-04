@@ -1,13 +1,11 @@
 #ifndef MODULO_004_H
 #define MODULO_004_H
 
-#include <iostream>
 #include <string>
 
 using namespace std;
 
 #include "003.h" // para acceder al tipo Fecha
-#include "001.h" // para acceder a mensaje
 
 // Clase
 class Cuac {
