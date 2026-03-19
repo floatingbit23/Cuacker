@@ -1,28 +1,29 @@
-a.out: 001.o 003.o 004.o 006.o 200.o 300.o Interprete.o main.o
-	g++ 001.o 003.o 004.o 006.o 200.o 300.o Interprete.o main.o
+a.out: Mensajes.o Fecha.o Cuac.o DiccionarioCuacs.o TablaHash.o ArbolAVL.o Interprete.o main.o
+	g++ Mensajes.o Fecha.o Cuac.o DiccionarioCuacs.o TablaHash.o ArbolAVL.o Interprete.o main.o
 
-001.o: 001.cpp 001.h
-	g++ -c 001.cpp
+Mensajes.o: Mensajes.cpp Mensajes.h
+	g++ -c Mensajes.cpp
 
-003.o: 003.cpp 003.h
-	g++ -c 003.cpp
+Fecha.o: Fecha.cpp Fecha.h
+	g++ -c Fecha.cpp
 
-004.o: 004.cpp 001.h 003.h 004.h
-	g++ -c 004.cpp
+Cuac.o: Cuac.cpp Mensajes.h Fecha.h Cuac.h
+	g++ -c Cuac.cpp
 
-006.o: 006.cpp 004.h 006.h 200.h 300.h
-	g++ -c 006.cpp
+DiccionarioCuacs.o: DiccionarioCuacs.cpp Cuac.h DiccionarioCuacs.h TablaHash.h ArbolAVL.h
+	g++ -c DiccionarioCuacs.cpp
 
-Interprete.o: Interprete.cpp Interprete.h 003.h 004.h
+Interprete.o: Interprete.cpp Interprete.h Fecha.h Cuac.h
 	g++ -c Interprete.cpp
 
-200.o: 200.cpp 003.h 004.h 200.h
-	g++ -c 200.cpp
+TablaHash.o: TablaHash.cpp Fecha.h Cuac.h TablaHash.h
+	g++ -c TablaHash.cpp
 
-300.o: 300.cpp 300.h 004.h
-	g++ -c 300.cpp
+ArbolAVL.o: ArbolAVL.cpp ArbolAVL.h Cuac.h
+	g++ -c ArbolAVL.cpp
 
-main.o: main.cpp Interprete.h 200.h
+main.o: main.cpp Interprete.h TablaHash.h
 	g++ -c main.cpp
 
-
+clean:
+	rm -f *.o a.out cuacker.exe

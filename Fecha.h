@@ -1,6 +1,6 @@
 // Módulo del 003.cpp
-#ifndef MODULO_003_H
-#define MODULO_003_H
+#ifndef FECHA_H
+#define FECHA_H
 
 // Clase Fecha
 class Fecha {

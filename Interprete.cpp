@@ -1,8 +1,8 @@
 #include <iostream>
 #include <string>
 
-#include "003.h"
-#include "004.h"
+#include "Fecha.h"
+#include "Cuac.h"
 #include "Interprete.h"
 
 using namespace std;

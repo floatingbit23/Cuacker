@@ -1,5 +1,5 @@
 
-#include "200.h"
+#include "TablaHash.h"
 #include "Interprete.h"
 using namespace std;
 

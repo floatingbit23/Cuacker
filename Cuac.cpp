@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
-#include "001.h"
-#include "004.h"
+#include "Mensajes.h"
+#include "Cuac.h"
 
 using namespace std;
 

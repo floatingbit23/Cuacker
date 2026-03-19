@@ -1,6 +1,6 @@
 #include <iostream>
 #include<string>
-#include "001.h"
+#include "Mensajes.h"
 using namespace std;
 
 string obtiene_mensaje(int number){

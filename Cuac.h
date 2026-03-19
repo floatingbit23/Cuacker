@@ -1,11 +1,11 @@
-#ifndef MODULO_004_H
-#define MODULO_004_H
+#ifndef CUAC_H
+#define CUAC_H
 
 #include <string>
 
 using namespace std;
 
-#include "003.h" // para acceder al tipo Fecha
+#include "Fecha.h" // para acceder al tipo Fecha
 
 // Clase
 class Cuac {

@@ -1,6 +1,6 @@
 #include<iostream>
 #include<list>
-#include "006.h"
+#include "DiccionarioCuacs.h"
 using namespace std;
 
 // Implementación del Constructor

@@ -1,9 +1,9 @@
-#ifndef MODULO_006_H
-#define MODULO_006_H
+#ifndef DICCIONARIOCUACS_H
+#define DICCIONARIOCUACS_H
 
-#include "004.h"
-#include "200.h"
-#include "300.h"
+#include "Cuac.h"
+#include "TablaHash.h"
+#include "ArbolAVL.h"
 
 #include<string>
 using namespace std;
