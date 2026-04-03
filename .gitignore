@@ -1,0 +1,25 @@
+# Executables
+*.exe
+*.out
+a.exe
+a.out
+cuacker.exe
+
+# Objects
+*.o
+
+# Documentation
+docs/
+Doxyfile
+
+# Archives
+*.tar
+*.zip
+*.gz
+
+# IDE folders
+.vscode/
+.idea/
+.vs/
+*.swp
+*.swo
