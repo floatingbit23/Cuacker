@@ -1,5 +1,7 @@
 #pragma once
 
+#include <iostream>
+
 /**
  * @file Fecha.h
  * @brief Definimos nuestra clase para la gestión de fechas y tiempo.
@@ -11,7 +13,8 @@ class Fecha {
 
 	private:
 		// Almacenamos cada componente de la fecha y hora de forma individual
-		int dia, mes, ano, hora, minuto, segundo;
+		// Usamos el prefijo '_' para distinguir claramente los atributos de la clase
+		int _dia, _mes, _anio, _hora, _minuto, _segundo;
 
 	public:
 		/**
@@ -22,15 +25,25 @@ class Fecha {
 
 		/**
 		 * @brief Mostramos la fecha con un formato amigable para el usuario.
+		 * Mantenemos este método por compatibilidad; internamente delegamos en operator<<.
 		 */
-		void escribir_fecha();
+		void escribir_fecha() const;
 
 		/**
-		 * @brief Realizamos comparaciones cronológicas.
-		 * Estos métodos nos permiten decidir qué publicación es más antigua o si coinciden.
+		 * @brief Realizamos comparaciones cronológicas mediante sobrecarga de operadores.
+		 * Pasamos las fechas como parámetros constantes para evitar copias innecesarias, ya que no vamos a modificarlas.
 		 */
-		bool es_menor(Fecha &otra);
-		bool es_igual(Fecha &otra);
+		bool operator<(const Fecha& otra_fecha) const;
+		bool operator==(const Fecha& otra_fecha) const;
+		bool operator>(const Fecha& otra_fecha) const;
+		bool operator<=(const Fecha& otra_fecha) const;
+		bool operator>=(const Fecha& otra_fecha) const;
+		bool operator!=(const Fecha& otra_fecha) const;
+
+		/**
+		 * @brief Función amiga de la clase Fecha (porque la función operator<< debe poder acceder a los atributos privados de dicha clase) 
+		 * Esta función permite la impresión directa de fechas mediante flujos.
+		 * Con esto podemos escribir: cout << miFecha;
+		 */
+		friend std::ostream& operator<<(std::ostream& flujo_salida, const Fecha& fecha);
 };
-
-

@@ -34,10 +34,10 @@ void Interprete::ejecutarCuacker(){
             // Intentamos leer el cuac; si la entrada es correcta, lo incorporamos a nuestro sistema
             if( c.read_cuac(comando) ){
 
-                diccionario.insertar(c); // Insertamos el cuac en nuestro diccionario
+                _servicio_datos.insertar(c); // Insertamos el cuac en nuestro diccionario
 
                 // Informamos al usuario de cuántas publicaciones totales gestionamos ahora
-                std::cout << diccionario.numElem() << " cuac" << std::endl;
+                std::cout << _servicio_datos.numElem() << " cuac" << std::endl;
             }
 
         } else if (comando == "last"){ // ej. "last 5"
@@ -50,7 +50,7 @@ void Interprete::ejecutarCuacker(){
             // Confirmamos por pantalla el comando que estamos procesando
             std::cout << comando << " " << n << std::endl;
 
-            diccionario.last(n);
+            _servicio_datos.last(n);
 
         } else if (comando == "follow"){ // ej. "follow john"
 
@@ -58,7 +58,7 @@ void Interprete::ejecutarCuacker(){
             std::string usuario;
             std::cin >> usuario;
 
-            diccionario.follow(usuario);
+            _servicio_datos.follow(usuario);
 
         } else if (comando == "date"){ // ej. "date 01/01/2022 31/12/2022"
 
@@ -69,20 +69,14 @@ void Interprete::ejecutarCuacker(){
             fecha_inicio.leer_fecha();
             fecha_fin.leer_fecha();
 
-            // Mostramos un eco de la consulta realizada
-            std::cout << comando << " ";
-            fecha_inicio.escribir_fecha();
+            // Mostramos un eco de la consulta realizada usando nuestro operator<< de Fecha
+            std::cout << comando << " " << fecha_inicio << " " << fecha_fin << std::endl;
 
-            std::cout << " ";
-            fecha_fin.escribir_fecha();
-            
-            std::cout << std::endl;
+            _servicio_datos.date(fecha_inicio, fecha_fin);
 
-            diccionario.date(fecha_inicio, fecha_fin);
-
+        } else {
+            // Informamos al usuario de que no reconocemos el comando introducido
+            std::cerr << "Error: comando '" << comando << "' no reconocido." << std::endl;
         }
     }
 }
-
-
-

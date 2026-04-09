@@ -18,31 +18,37 @@ class Nodo {
     friend class Arbol_AVL;
 
 private:
-    Nodo *hijoI, *hijoD;        // Punteros a nuestras ramas izquierda y derecha
-    int altura;                 // Almacenamos la altura para balancear el árbol eficientemente
-    std::list<Cuac*> lcuac;     // Lista de punteros a cuacs con la misma fecha
-    Fecha fecha;                // La fecha que identifica a este nodo
-    bool ordenada;
+    // Punteros a nuestras ramas izquierda y derecha
+    Nodo *_hijoIzquierdo;
+    Nodo *_hijoDerecho;
+
+    // Almacenamos la altura para balancear el árbol eficientemente
+    int _altura;
+
+    // Lista de punteros a cuacs con la misma fecha
+    std::list<Cuac*> _listaCuacs;
+
+    // La fecha que identifica a este nodo
+    Fecha _fecha;
 
 public:
     /**
      * @brief Creamos un nuevo nodo a partir de un cuac inicial.
      */
-    Nodo(Cuac* c) {
-        ordenada = true;
-        fecha = c->get_fecha();
-        lcuac.push_back(c);
-        hijoI = nullptr;
-        hijoD = nullptr;
-        altura = 1; // Inicializamos la altura como 1 para nuevos nodos
+    Nodo(Cuac* nuevo_cuac) {
+        _fecha = nuevo_cuac->get_fecha();
+        _listaCuacs.push_back(nuevo_cuac);
+        _hijoIzquierdo = nullptr;
+        _hijoDerecho = nullptr;
+        _altura = 1; // Inicializamos la altura como 1 para nuevos nodos
     }
 
     /**
      * @brief Destructor recursivo para limpiar nuestro árbol de la memoria.
      */
     ~Nodo() {
-        delete hijoI;
-        delete hijoD;
+        delete _hijoIzquierdo;
+        delete _hijoDerecho;
     }
 };
 
@@ -51,21 +57,23 @@ public:
  * Nuestra clase principal para gestionar la jerarquía de nodos.
  */
 class Arbol_AVL {
+
+
 private:
-    Nodo* raiz; // El punto de inicio de nuestro árbol
+    Nodo* _raiz; // El punto de inicio de nuestro árbol
 
     // Métodos internos para gestionar el balanceo y la altura
-    int get_Altura(Nodo* nodo);
-    int get_Balanceo(Nodo* nodo);
+    int obtener_altura(Nodo* nodo_consulta);
+    int obtener_balanceo(Nodo* nodo_consulta);
 
     // Implementamos los giros necesarios para mantener el equilibrio del AVL
-    Nodo* giro_Derecha(Nodo* nodoD);
-    Nodo* giro_Izquierda(Nodo* nodoI);
+    Nodo* giro_derecha(Nodo* nodo_raiz_local);
+    Nodo* giro_izquierda(Nodo* nodo_raiz_local);
 
     // Funciones recursivas de inserción y búsqueda
-    Nodo* insertar(Nodo* nodo, Cuac* clave);
-    void last(Nodo* nodo, int& restantes, int& contador);
-    void date(Nodo* nodo, Fecha fecha, Fecha fecha2, int& contador);
+    Nodo* insertar_recursivo(Nodo* nodo_actual, Cuac* nuevo_cuac);
+    void buscar_ultimos_recursivo(Nodo* nodo_actual, int& cuacs_restantes, int& contador_posicion);
+    void buscar_por_rango_recursivo(Nodo* nodo_actual, const Fecha& fecha_inicio, const Fecha& fecha_fin, int& contador_total);
 
 public:
     /**
@@ -77,7 +85,7 @@ public:
     /**
      * @brief Interfaces públicas para las operaciones de nuestra red social.
      */
-    void insertar(Cuac* c);
-    void date(Fecha fecha, Fecha fecha2);
-    void last(int n);
+    void insertar(Cuac* cuac_a_insertar);
+    void date(const Fecha& fecha_inicio, const Fecha& fecha_fin);
+    void last(int cantidad_a_mostrar);
 };

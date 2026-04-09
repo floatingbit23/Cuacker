@@ -4,9 +4,11 @@
 a.exe
 a.out
 cuacker.exe
+cuacker
 
 # Objects
 *.o
+*.obj
 
 # Documentation
 docs/
@@ -26,3 +28,18 @@ Doxyfile
 
 cuacker_analysis.md
 *implementation_plan*.md
+
+# --- CMake Files/Folders ---
+build/
+.cache/
+CMakeFiles/
+CMakeCache.txt
+CMakeSettings.json
+*.cmake
+install_manifest.txt
+
+# --- VS Code ---
+.vscode/ipch/
+.vscode/bin/
+.vscode/obj/
+

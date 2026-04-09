@@ -21,8 +21,8 @@ private:
    * Usamos la tabla para búsquedas por usuario y el árbol para búsquedas temporales.
    */
 
-  TablaHash tabla;  // Tiempo algorítmico O(1)
-  Arbol_AVL arbol;  // Tiempo algorítmico O(log n)
+  TablaHash _tabla_usuarios;  // Tiempo algorítmico O(1)
+  Arbol_AVL _arbol_fechas;    // Tiempo algorítmico O(log n)
 
 public:
   /**
@@ -53,5 +53,5 @@ public:
   /**
    * @brief Consultamos el número total de publicaciones que gestionamos.
    */
-  int numElem() { return tabla.nElem(); }
+  int numElem() const { return _tabla_usuarios.nElem(); }
 };

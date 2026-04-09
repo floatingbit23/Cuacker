@@ -19,14 +19,14 @@ private:
      * En nuestro diseño, asociamos cada nombre de usuario con una lista de sus cuacs.
      */
     class Par {
-        std::string nombre;     // Nombre del usuario (nuestra clave)
-        std::list<Cuac> l;      // Lista de cuacs realizados por este usuario
+        std::string _nombre_usuario; // Nombre del usuario (nuestra clave)
+        std::list<Cuac> _lista_cuacs; // Lista de cuacs realizados por este usuario
         friend class TablaHash;
     };
 
-    std::list<Par>* T; // Array de listas (nuestro "cubo" para manejar colisiones)
-    int B;             // Número total de entradas en nuestra tabla (tamaño del array)
-    int n;             // Contador total de elementos que hemos insertado
+    std::list<Par>* _tabla_buckets; // Array de listas (nuestro "cubo/bucket" para manejar colisiones)
+    int _num_buckets;               // Número total de entradas en nuestra tabla (tamaño del array)
+    int _num_elementos;            // Contador total de elementos que hemos insertado
 
 public:
     /**
@@ -38,7 +38,7 @@ public:
     /**
      * @brief Nuestra función de dispersión para calcular la posición en la tabla.
      */
-    int funcionHash(std::string& clave);
+    int funcionHash(const std::string& clave);
 
     /**
      * @brief Insertamos un cuac (copia temporal) y devolvemos su dirección de memoria.
@@ -54,7 +54,7 @@ public:
     /**
      * @brief Nos devuelve el número total de elementos insertados.
      */ 
-    int nElem(void) { 
-        return n; 
+    int nElem() const { 
+        return _num_elementos; 
     }
 };

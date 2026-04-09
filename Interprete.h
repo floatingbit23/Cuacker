@@ -13,7 +13,7 @@ class Interprete {
 
     private:
         // Mantenemos una instancia de nuestro núcleo de datos
-        DiccionarioCuacs diccionario;
+        DiccionarioCuacs _servicio_datos;
 
     public:
         /**
