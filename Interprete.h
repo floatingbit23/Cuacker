@@ -1,17 +1,29 @@
-#ifndef INTERPRETE_H
-#define INTERPRETE_H
+#pragma once
 
-#include "DiccionarioCuacs.h" // debe conocer el Diccionario
+/**
+ * @file Interprete.h
+ * @brief Definimos nuestra clase Intérprete para la gestión de la interfaz de comandos.
+ * En este módulo nos encargamos de recibir las órdenes del usuario, procesarlas
+ * y dar la orden correspondiente a nuestro Diccionario de Cuacs.
+ */
+
+#include "DiccionarioCuacs.h"
 
 class Interprete {
+
     private:
+        // Mantenemos una instancia de nuestro núcleo de datos
         DiccionarioCuacs diccionario;
+
     public:
+        /**
+         * @brief Preparamos nuestro intérprete.
+         */
+        Interprete();
 
-        Interprete(); // Constructor sin argumentos
-        void ejecutarCuacker(); // Método principal (ejecuta toda la lógica)
+        /**
+         * @brief Arrancamos el bucle principal de ejecución de nuestra red social.
+         * En este método nos quedamos a la escucha de comandos hasta que se recibe 'exit'.
+         */
+        void ejecutarCuacker();
 };
-
-
-
-#endif

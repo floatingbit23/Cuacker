@@ -1,15 +1,21 @@
 #include <iostream>
-#include<string>
+#include <string>
 #include "Mensajes.h"
-using namespace std;
 
-string obtiene_mensaje(int number){
+/**
+ * @brief Definimos nuestro almacén de mensajes predefinidos.
+ * Hemos seleccionado una serie de frases comunes que nuestros usuarios pueden publicar 
+ * simplemente referenciando su número de orden, lo que nos permite ahorrar espacio.
+ * @return El mensaje correspondiente al número solicitado o una cadena vacía si no existe.
+ */
+std::string obtiene_mensaje(int number){
 
-	const string mensajes[30] = {
+    // Definimos nuestra lista estática de mensajes disponibles en el sistema
+	const std::string mensajes[30] = {
 
-		"Afirmativo.",
-        "Negativo.",
-        "Estoy de viaje en el extranjero.",
+		    "Afirmativo.", // mensajes[0]
+        "Negativo.", // mensajes[1]
+        "Estoy de viaje en el extranjero.", // ...
         "Muchas gracias a todos mis seguidores por vuestro apoyo.",
         "Enhorabuena, campeones!",
         "Ver las novedades en mi pagina web.",
@@ -36,18 +42,22 @@ string obtiene_mensaje(int number){
         "Me despido hasta la proxima. Buen viaje!",
         "Cualquiera se puede equivocar, inclusivo yo.",
         "Estoy en Egipto. Nunca habia visto las piramides tan solas.",
-        "El que quiera saber mas, que se vaya a Salamanca."
+        "El que quiera saber mas, que se vaya a Salamanca." // mensajes[29]
     };
 
+  // Verificamos que el número solicitado esté dentro de nuestro rango válido (1-30)
   if(number >=1 && number <= 30){
-		return mensajes[number-1];
+		return mensajes[number-1]; // Restamos 1 para ajustar al índice de nuestro array
   }
 
-  return ""; // si no coincide
+  // Si el código no existe en nuestra lista, devolvemos una cadena vacía
+  return "";
 
 }
 
-
+/**
+ * @brief Enviamos directamente al flujo de salida el mensaje solicitado.
+ */
 void imprime_mensaje(int number){
-  cout << obtiene_mensaje(number);
+  std::cout << obtiene_mensaje(number);
 }

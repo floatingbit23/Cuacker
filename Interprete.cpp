@@ -1,76 +1,84 @@
 #include <iostream>
 #include <string>
-
 #include "Fecha.h"
 #include "Cuac.h"
 #include "Interprete.h"
 
-using namespace std;
-
-// Constructor vacío
+/**
+ * @brief Constructor por defecto de nuestro Intérprete.
+ */
 Interprete::Interprete(){}
 
-
+/**
+ * @brief Ejecutamos el motor de nuestra aplicación.
+ * Implementamos un bucle que lee comandos de la entrada estándar y los distribuye
+ * a las funciones de nuestro Diccionario.
+ */
 void Interprete::ejecutarCuacker(){
 
-    string comando;
+    std::string comando;
 
-    // Bucle de control de entradas:
+    // Entramos en nuestro bucle de control infinito hasta que se solicite el cierre
+    while(std::cin >> comando){
 
-    while(cin >> comando){
+        // Gestionamos el cierre de nuestra sesión
+        if (comando == "exit"){
 
-        if (comando == "exit"){  // caso de salida
-            break;
+            break; // Salimos del bucle y finaliza el programa
 
-        } else  if (comando == "mcuac" || comando == "pcuac"){
+        } else if (comando == "mcuac" || comando == "pcuac"){ // ej. "mcuac john hello world" o "pcuac john 123"
 
+            // Gestionamos la creación de nuevas publicaciones
             Cuac c;
 
-            if( c.read_cuac(comando) ){  // if true
+            // Intentamos leer el cuac; si la entrada es correcta, lo incorporamos a nuestro sistema
+            if( c.read_cuac(comando) ){
 
-                diccionario.insertar(c);
-                cout << diccionario.numElem() << " cuac" << endl;
+                diccionario.insertar(c); // Insertamos el cuac en nuestro diccionario
+
+                // Informamos al usuario de cuántas publicaciones totales gestionamos ahora
+                std::cout << diccionario.numElem() << " cuac" << std::endl;
             }
 
-            } else if (comando == "last"){
+        } else if (comando == "last"){ // ej. "last 5"
 
-                int n;
-                cin >> n;
-                cout<< comando << " " << n << endl; // imprime mismo comando de entrada en la salida
+            // Procesamos la solicitud de ver los mensajes más recientes
 
-                diccionario.last(n);
+            int n; // Número de mensajes a mostrar
+            std::cin >> n;
 
-            } else if (comando == "follow"){
+            // Confirmamos por pantalla el comando que estamos procesando
+            std::cout << comando << " " << n << std::endl;
 
-                string usuario;
-                cin >> usuario;
+            diccionario.last(n);
 
-                diccionario.follow(usuario);
+        } else if (comando == "follow"){ // ej. "follow john"
 
-            /*} else if (comando == "tag"){
+            // Ejecutamos la búsqueda de mensajes de un usuario específico
+            std::string usuario;
+            std::cin >> usuario;
 
-            string tag;
-            cin >> tag;
+            diccionario.follow(usuario);
 
-            if(!tag.empty() && tag[0] == '#'){
-                cout << comando << " " << tag << endl;
-            }
-            */
-            } else if (comando == "date"){
+        } else if (comando == "date"){ // ej. "date 01/01/2022 31/12/2022"
 
-                Fecha fecha_inicio, fecha_fin;
+            // Filtramos publicaciones en un periodo de tiempo determinado
+            Fecha fecha_inicio, fecha_fin;
 
-                fecha_inicio.leer_fecha();
-                fecha_fin.leer_fecha();
+            // Capturamos los límites temporales
+            fecha_inicio.leer_fecha();
+            fecha_fin.leer_fecha();
 
-                cout << comando << " ";
-                fecha_inicio.escribir_fecha();
-                cout << " ";
-                fecha_fin.escribir_fecha();
+            // Mostramos un eco de la consulta realizada
+            std::cout << comando << " ";
+            fecha_inicio.escribir_fecha();
 
-                cout << endl;
+            std::cout << " ";
+            fecha_fin.escribir_fecha();
+            
+            std::cout << std::endl;
 
-                diccionario.date(fecha_inicio, fecha_fin);
+            diccionario.date(fecha_inicio, fecha_fin);
 
         }
     }

@@ -23,3 +23,6 @@ Doxyfile
 .vs/
 *.swp
 *.swo
+
+cuacker_analysis.md
+*implementation_plan*.md

@@ -1,13 +1,27 @@
+/**
+ * @file main.cpp
+ * @brief Punto de entrada de nuestra aplicación Cuacker.
+ * En este archivo nos encargamos de instanciar nuestro motor principal
+ * y arrancar el flujo de ejecución de nuestra red social.
+ */
 
-#include "TablaHash.h"
 #include "Interprete.h"
-using namespace std;
 
 int main() {
 
-    Interprete cuacker; // instanciamos el interprete de comandos
+  /**
+   * @brief Creamos nuestro objeto Intérprete.
+   * Este objeto centralizará toda la interacción con el usuario.
+   */
 
-    cuacker.ejecutarCuacker();
+  Interprete cuacker;
 
-	return 0;
+  /**
+   * @brief Iniciamos la ejecución de nuestro programa.
+   * Aquí le cedemos el control al intérprete de comandos.
+   */
+
+  cuacker.ejecutarCuacker(); // Arrancamos el REPL (Read-Eval-Print Loop)
+
+  return 0; // Finalizamos nuestra aplicación correctamente
 }
