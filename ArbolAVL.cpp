@@ -38,7 +38,8 @@ int Arbol_AVL::obtener_altura(Nodo* nodo_consulta) {
 
 /**
  * @brief Calculamos el factor de equilibrio de un nodo.
- * Obtenemos la diferencia entre nuestras ramas izquierda y derecha (lo que llamamos altura) para saber hacia dónde inclinar el balanceo.
+ * Obtenemos la diferencia entre nuestras ramas izquierda y derecha para saber hacia dónde inclinar el balanceo.
+ * Si el resultado es >1 o <-1, el árbol está desequilibrado.
  * @param nodo_consulta Puntero al nodo cuyo balanceo queremos calcular.
  * @return Un entero que indica el grado de desequilibrio (positivo: pesado a la izquierda, negativo: pesado a la derecha).
  */
@@ -53,7 +54,7 @@ int Arbol_AVL::obtener_balanceo(Nodo* nodo_consulta) {
     return (obtener_altura(nodo_consulta->_hijoIzquierdo) - obtener_altura(nodo_consulta->_hijoDerecho));
 }
 
-// === GIROS DEL ÁRBOL ===
+// === ROTACIONES DEL ÁRBOL ===
 
 /**
  * @brief Realizamos un giro a la derecha en nuestro árbol.
@@ -107,7 +108,7 @@ Nodo* Arbol_AVL::giro_izquierda(Nodo* nodo_raiz_local) {
  */
 Nodo* Arbol_AVL::insertar_recursivo(Nodo* nodo_actual, Cuac* nuevo_cuac) {
 
-    // CASO BASE: si llegamos a un hueco vacío, creamos nuestro nuevo nodo ahí
+    // CASO BASE: si llegamos a un hueco vacío (nullptr), creamos nuestro nuevo nodo ahí
     if (nodo_actual == nullptr) {
         return new Nodo(nuevo_cuac);
     }
@@ -171,7 +172,7 @@ Nodo* Arbol_AVL::insertar_recursivo(Nodo* nodo_actual, Cuac* nuevo_cuac) {
     // Comprobamos si nos hemos desbalanceado y aplicamos las rotaciones necesarias (si fuera necesario)
     int factor_balanceo = obtener_balanceo(nodo_actual);
 
-    // === CASOS DE DESBALANCEO ===
+    // === CASOS DE DESBALANCEO --> LLAMADA A ROTACIONES ===
 
     // == CASO IZQUIERDA-IZQUIERDA == 
     
@@ -217,33 +218,39 @@ Nodo* Arbol_AVL::insertar_recursivo(Nodo* nodo_actual, Cuac* nuevo_cuac) {
 
 /**
  * @brief Mostramos los 'N' cuacs más recientes de nuestro sistema.
- * Recorremos el árbol de derecha a izquierda (en orden inverso) para 
- * priorizar las fechas más tardías.
+ * Recorremos el árbol de derecha a izquierda (en orden inverso) para priorizar las fechas más tardías.
  * @param nodo_actual Nodo desde el que empezamos a buscar (normalmente la raíz).
  * @param cuacs_restantes Referencia al contador de mensajes que nos quedan por mostrar.
  * @param contador_posicion Referencia al número de orden en la lista de visualización.
  */
 void Arbol_AVL::buscar_ultimos_recursivo(Nodo* nodo_actual, int& cuacs_restantes, int& contador_posicion) {
+
+    // Caso base: si el nodo es nulo O ya hemos mostrado todos los cuacs -> salimos del método recursivo
     if (nodo_actual == nullptr || cuacs_restantes <= 0) {
         return;
     }
 
-    // Primero visitamos la rama derecha (mensajes más futuros)
+    // Primero visitamos recursivamente la rama derecha (mensajes más recientes)
     buscar_ultimos_recursivo(nodo_actual->_hijoDerecho, cuacs_restantes, contador_posicion);
 
-    // Procesamos la lista de mensajes de este nodo
-    if (cuacs_restantes > 0) {
-        for (Cuac* cuac : nodo_actual->_listaCuacs) {
-            if (cuacs_restantes <= 0) break;
-            std::cout << contador_posicion << ". ";
-            cuac->write_cuac();
-            std::cout << "\n";
-            contador_posicion++;
-            cuacs_restantes--;
-        }
-    }
+    // Procesamos la lista de cuacs de este nodo (el bucle se encargará de no ejecutarse si la lista está vacía)
+    for (Cuac* cuac : nodo_actual->_listaCuacs) {
 
-    // Finalmente, si aún nos quedan mensajes por mostrar, exploramos la rama izquierda
+        // Si ya hemos mostrado todos los cuacs -> salimos del bucle
+        if (cuacs_restantes <= 0) break;
+        
+        // Mostramos el cuac (Ej: 1. 10/10/2026 10:00:00 - Usuario1: Hola)
+        std::cout << contador_posicion << ". ";
+        cuac->write_cuac();
+        std::cout << "\n";
+        
+        // Actualizamos el contador de posición y el contador de cuacs restantes
+        contador_posicion++;
+        cuacs_restantes--;
+    }
+    
+
+    // Finalmente, si aún nos quedan mensajes por mostrar, exploramos recursivamente la rama izquierda
     if (cuacs_restantes > 0) {
         buscar_ultimos_recursivo(nodo_actual->_hijoIzquierdo, cuacs_restantes, contador_posicion);
     }
@@ -257,24 +264,30 @@ void Arbol_AVL::buscar_ultimos_recursivo(Nodo* nodo_actual, int& cuacs_restantes
  * @param contador_total Referencia al contador de cuántos cuacs hemos encontrado.
  */
 void Arbol_AVL::buscar_por_rango_recursivo(Nodo* nodo_actual, const Fecha& fecha_inicio, const Fecha& fecha_fin, int& contador_total) {
+    
+    // Caso base: si el nodo es nulo -> salimos del método recursivo
     if (nodo_actual == nullptr) return;
 
-    // Si el nodo puede tener fechas relevantes a la derecha, exploramos
+    // Si el nodo tiene fechas relevantes a la derecha, exploramos recursivamente la rama derecha en busca de cuacs dentro del rango
     if (nodo_actual->_fecha <= fecha_fin) {
         buscar_por_rango_recursivo(nodo_actual->_hijoDerecho, fecha_inicio, fecha_fin, contador_total);
     }
 
     // Comprobamos si la fecha de nuestro nodo está dentro del intervalo solicitado
     if (nodo_actual->_fecha >= fecha_inicio && nodo_actual->_fecha <= fecha_fin) {
+        // Recorremos la lista de cuacs de este nodo
+        // (la lista está ordenada por fecha, así que los mostramos en orden)
         for (Cuac* cuac : nodo_actual->_listaCuacs) {
+            // Incrementamos el contador de cuacs encontrados
             contador_total++;
+            // Mostramos el cuac (Ej: 1. 10/10/2026 10:00:00 - Usuario1: Hola)
             std::cout << contador_total << ". ";
             cuac->write_cuac();
             std::cout << "\n";
         }
     }
 
-    // Exploramos la rama izquierda si es posible encontrar fechas mayores que el límite inferior
+    // Si el nodo tiene fechas relevantes a la izquierda, exploramos recursivamente la rama izquierda en busca de cuacs dentro del rango
     if (nodo_actual->_fecha >= fecha_inicio) {
         buscar_por_rango_recursivo(nodo_actual->_hijoIzquierdo, fecha_inicio, fecha_fin, contador_total);
     }
@@ -294,9 +307,14 @@ void Arbol_AVL::insertar(Cuac* cuac_a_insertar) {
  * @param fecha_fin Fecha de fin del rango.
  */
 void Arbol_AVL::date(const Fecha& fecha_inicio, const Fecha& fecha_fin) {
+    // Inicializamos el contador de cuacs encontrados
     int contador_total = 0;
+
+    // Llamamos al método recursivo
     buscar_por_rango_recursivo(_raiz, fecha_inicio, fecha_fin, contador_total);
-    std::cout << "Total: " << contador_total << " cuac" << "\n";
+
+    // Mostramos el total de cuacs encontrados
+    std::cout << "Total: " << contador_total << " cuac" << "\n"; // Ej: Total: 5 cuacs
 }
 
 /**
@@ -304,9 +322,63 @@ void Arbol_AVL::date(const Fecha& fecha_inicio, const Fecha& fecha_fin) {
  * @param cantidad_a_mostrar Número de cuacs a mostrar.
  */
 void Arbol_AVL::last(int cantidad_a_mostrar) {
-    int restantes = cantidad_a_mostrar;
-    int contador_posicion = 1;
-    buscar_ultimos_recursivo(_raiz, restantes, contador_posicion);
-    int total_mostrados = cantidad_a_mostrar - std::max(0, restantes);
-    std::cout << "Total: " << total_mostrados << " cuac" << std::endl;
+
+    int restantes = cantidad_a_mostrar; // Cuántos cuacs nos quedan por mostrar
+    int contador_posicion = 1; // Posición del cuac que estamos mostrando
+
+    buscar_ultimos_recursivo(_raiz, restantes, contador_posicion); // Llamamos al método recursivo
+
+    // Calculamos el total de cuacs mostrados (cantidad_a_mostrar - restantes)
+    int total_mostrados = cantidad_a_mostrar - std::max(0, restantes); 
+
+    std::cout << "Total: " << total_mostrados << " cuac" << std::endl; // Ej: Total: 5 cuacs
+}
+
+// === BÚSQUEDA DE TEXTO ===
+
+/**
+ * @brief Buscamos cuacs cuyo texto contenga una subcadena específica.
+ * Recorremos el árbol en orden inverso (de más reciente a más antiguo) para mantener la consistencia visual con los demás comandos de visualización.
+ * @param nodo_actual Nodo actual de la búsqueda recursiva.
+ * @param texto Subcadena que buscamos dentro del contenido de cada cuac.
+ * @param contador_total Referencia al contador de cuacs que coinciden con la búsqueda.
+ */
+void Arbol_AVL::buscar_texto_recursivo(Nodo* nodo_actual, const std::string& texto, int& contador_total) {
+
+    // Caso base: si el nodo es nulo -> salimos del método recursivo
+    if (nodo_actual == nullptr) return;
+
+    // Primero exploramos recursivamente la rama derecha (cuacs más recientes)
+    buscar_texto_recursivo(nodo_actual->_hijoDerecho, texto, contador_total);
+
+    // Recorremos la lista de cuacs de este nodo
+    for (Cuac* cuac : nodo_actual->_listaCuacs) {
+
+        // Comprobamos si el texto del cuac contiene la subcadena buscada
+        // string::find devuelve npos si no encuentra la subcadena
+        if (cuac->get_texto().find(texto) != std::string::npos) {
+            contador_total++;
+            std::cout << contador_total << ". ";
+            cuac->write_cuac();
+            std::cout << "\n";
+        }
+    }
+
+    // Finalmente exploramos recursivamente la rama izquierda (cuacs más antiguos)
+    buscar_texto_recursivo(nodo_actual->_hijoIzquierdo, texto, contador_total);
+}
+
+/**
+ * @brief Método inicializador de búsqueda de texto en los cuacs.
+ * @param texto Subcadena a buscar dentro del contenido de los cuacs.
+ */
+void Arbol_AVL::search(const std::string& texto) {
+    
+    int contador_total = 0;
+
+    // Llamamos al método recursivo
+    buscar_texto_recursivo(_raiz, texto, contador_total);
+
+    // Mostramos el total de cuacs encontrados
+    std::cout << "Total: " << contador_total << " cuac" << std::endl;
 }

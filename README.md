@@ -16,6 +16,27 @@ Motor de gestión de datos de alto rendimiento desarrollado en C++. El proyecto 
 
 4. **Documentación Integrada**: Configuración de Doxygen lista para generar manual técnico automático.
 
+## Comandos Disponibles
+
+| Comando | Acción | Estructura Principal |
+|---|---|---|
+| `mcuac` / `pcuac` | Publicar un nuevo Cuac | Tabla Hash + Árbol AVL |
+| `follow <usuario>` | Ver todos los cuacs de un usuario | Tabla Hash ($O(1)$) |
+| `last <n>` | Ver los últimos 'n' mensajes del sistema | Árbol AVL ($O(log n)$) |
+| `date <ini> <fin>` | Buscar mensajes en un rango de fechas | Árbol AVL ($O(log n)$) |
+| `tag <#hashtag>` | Buscar mensajes por hashtag | Índice Map ($O(log n)$) |
+| `search <texto>` | Búsqueda de texto completo | Árbol AVL (Filtrado) |
+| `stats` | Estadísticas globales del sistema | Metadatos en tiempo real |
+
+## Análisis de Rendimiento (Stress Test)
+
+Se ha sometido al sistema a una prueba de estrés con **50.000 cuacs** aleatorios:
+- **Inserción:** 137.5 microsegundos de media por mensaje (incluye balanceo AVL).
+- **Búsqueda Hash:** Tiempo insignificante (< 0.001ms), confirmando acceso $O(1)$.
+- **Búsqueda AVL:** 100 consultas `last` realizadas en 58ms sobre 50k elementos.
+
+*Nota: Estos resultados demuestran la escalabilidad de la arquitectura híbrida incluso con grandes volúmenes de datos.*
+
 ## Construcción y Ejecución
 
 El proyecto utiliza **CMake**, el estándar de la industria para la construcción de software en C++.

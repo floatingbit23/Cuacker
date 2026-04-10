@@ -17,6 +17,12 @@ class Fecha {
 		int _dia, _mes, _anio, _hora, _minuto, _segundo;
 
 	public:
+		// Constructor por defecto
+		Fecha();
+
+		// Constructor parametrizado para performance tests
+		Fecha(int d, int m, int a, int h, int min, int seg);
+
 		/**
 		 * @brief Capturamos la fecha desde el flujo de entrada.
 		 * Definimos un formato específico para que nuestra lectura sea consistente.

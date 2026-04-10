@@ -42,14 +42,21 @@ public:
 
     /**
      * @brief Insertamos un cuac (copia temporal) y devolvemos su dirección de memoria.
-     * Modificamos este método para que nos devuelva un puntero, facilitando la creación de índices.
+     * @param c El objeto Cuac que queremos almacenar.
+     * @param esNuevo (Opcional) Se pondrá a true si el usuario no existía previa mente.
+     * @return La dirección de memoria donde ha quedado guardado el cuac.
      */
-    Cuac* insertar(Cuac c);
+    Cuac* insertar(Cuac c, bool* esNuevo = nullptr);
 
     /**
      * @brief Recuperamos la lista completa de cuacs de un usuario específico (referencia).
      */
     std::list<Cuac> follow(std::string& usuario);
+
+    /**
+     * @brief Comprobamos si un usuario ya existe en nuestra tabla.
+     */
+    bool existeUsuario(const std::string& usuario);
 
     /**
      * @brief Nos devuelve el número total de elementos insertados.

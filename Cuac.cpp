@@ -12,9 +12,12 @@ int Cuac::_contador_id = 1;
  * Cada vez que creamos un nuevo objeto Cuac, le asignamos el valor actual del contador
  * e incrementamos dicho contador para la siguiente instancia.
  */
-Cuac::Cuac() {
-    _id = _contador_id++;
-}
+Cuac::Cuac() 
+    : _numero_predefinido(0), _mensaje(""), _usuario(""), _tipo_cuac(""), _id(_contador_id++) {}
+
+// Constructor parametrizado para performance tests
+Cuac::Cuac(std::string usuario, std::string mensaje, Fecha fecha) 
+    : _numero_predefinido(0), _mensaje(mensaje), _usuario(usuario), _tipo_cuac("mcuac"), _fecha(fecha), _id(_contador_id++) {}
 
 /**
  * @brief Implementamos la lógica de lectura de un Cuac.

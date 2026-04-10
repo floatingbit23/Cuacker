@@ -46,10 +46,13 @@ int TablaHash::funcionHash(const std::string& clave)
  * @param c El objeto Cuac que queremos almacenar.
  * @return La dirección de memoria donde ha quedado guardado el cuac insertado.
  */
-Cuac* TablaHash::insertar(Cuac c)
+Cuac* TablaHash::insertar(Cuac c, bool* esNuevo)
 {
     std::string usuario = c.get_usuario();
     int h = funcionHash(usuario); // Calculamos en qué "cubo/bucket" debe estar
+
+    // Por defecto, asumimos que no es nuevo a menos que lleguemos al final
+    if (esNuevo) *esNuevo = false;
 
     // Buscamos si el usuario ya tiene una entrada en nuestra tabla
     for (Par &par : _tabla_buckets[h]) {
@@ -102,13 +105,15 @@ Cuac* TablaHash::insertar(Cuac c)
         }
     }
 
-    // Si llegamos aquí, es que es un usuario nuevo en nuestro sistema:
+    // Si llegamos aquí, es que es un usuario nuevo en nuestro sistema
 
     Par nuevo; // Creamos un nuevo par
     nuevo._nombre_usuario = usuario; // Le asignamos el nombre del usuario
     nuevo._lista_cuacs.push_back(c); // Le asignamos el cuac (push_back inserta al final)
     _tabla_buckets[h].push_back(nuevo); // Lo insertamos en la tabla (al final)
     
+    // Si llegamos aquí, es que es un usuario nuevo en nuestro sistema
+    if (esNuevo) *esNuevo = true;
     _num_elementos++; // Incrementamos el contador de elementos
 
     return &(_tabla_buckets[h].back()._lista_cuacs.back()); // Devolvemos la dirección del elemento recién creado
@@ -122,9 +127,6 @@ Cuac* TablaHash::insertar(Cuac c)
  */
 std::list<Cuac> TablaHash::follow(std::string& usuario) {
 
-    // Comunicamos la acción que estamos realizando
-    std::cout << "follow " << usuario << std::endl;
-
     int h = funcionHash(usuario); // Calculamos en qué "cubo/bucket" debe estar
 
     // Recorremos la lista de pares 'Par(nombre, lista de cuacs)' en el cubo correspondiente
@@ -137,4 +139,25 @@ std::list<Cuac> TablaHash::follow(std::string& usuario) {
     // Si no lo encontramos, devolvemos una lista vacía
     std::list<Cuac> vacia;
     return vacia;
+}
+
+/**
+ * @brief Comprobamos si un usuario ya tiene alguna publicación en el sistema.
+ * @param usuario Nombre del usuario a buscar.
+ * @return true si el usuario ya existe, false en caso contrario.
+ */
+bool TablaHash::existeUsuario(const std::string& usuario) {
+
+    int h = funcionHash(usuario); // Calculamos en qué "cubo/bucket" debe estar
+    
+    // Recorremos la lista de pares 'Par(nombre, lista de cuacs)' en el cubo correspondiente
+    for (Par &par : _tabla_buckets[h]) {
+
+        if (par._nombre_usuario == usuario) { // Si encontramos al usuario
+            return true; // Devolvemos true
+        }
+        
+    }
+
+    return false; // Si no lo encontramos, devolvemos false
 }

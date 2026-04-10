@@ -1,5 +1,13 @@
 #include <iostream>
+#include <iomanip>
 #include "Fecha.h"
+
+// Constructor por defecto
+Fecha::Fecha() : _dia(1), _mes(1), _anio(2000), _hora(0), _minuto(0), _segundo(0) {}
+
+// Constructor parametrizado para performance tests
+Fecha::Fecha(int d, int m, int a, int h, int min, int seg) 
+    : _dia(d), _mes(m), _anio(a), _hora(h), _minuto(min), _segundo(seg) {}
 
 /**
  * @brief Implementamos la lectura de la fecha.

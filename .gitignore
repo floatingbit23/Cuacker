@@ -13,6 +13,7 @@ cuacker
 # Documentation
 docs/
 Doxyfile
+*.txt
 
 # Archives
 *.tar

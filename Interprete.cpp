@@ -47,9 +47,6 @@ void Interprete::ejecutarCuacker(){
             int n; // Número de mensajes a mostrar
             std::cin >> n;
 
-            // Confirmamos por pantalla el comando que estamos procesando
-            std::cout << comando << " " << n << std::endl;
-
             _servicio_datos.last(n);
 
         } else if (comando == "follow"){ // ej. "follow john"
@@ -69,14 +66,51 @@ void Interprete::ejecutarCuacker(){
             fecha_inicio.leer_fecha();
             fecha_fin.leer_fecha();
 
-            // Mostramos un eco de la consulta realizada usando nuestro operator<< de Fecha
-            std::cout << comando << " " << fecha_inicio << " " << fecha_fin << std::endl;
-
             _servicio_datos.date(fecha_inicio, fecha_fin);
+
+        } else if (comando == "tag"){ // ej. "tag #programacion"
+
+            // Buscamos publicaciones que contengan un hashtag específico
+            std::string hashtag;
+            std::cin >> hashtag;
+
+            _servicio_datos.tag(hashtag);
+
+        } else if (comando == "search"){ // ej. "search hola"
+
+            // Buscamos publicaciones que contengan una subcadena en su texto
+            std::string texto;
+
+            // Leemos toda la línea con getline() para permitir búsquedas con espacios
+            std::cin.ignore();
+            std::getline(std::cin, texto);
+
+            _servicio_datos.search(texto);
+
+        } else if (comando == "stats"){ // ej. "stats"
+
+            // Mostramos las estadísticas generales del sistema
+            _servicio_datos.stats();
+
+        } else if (comando == "help"){ // ej. "help"
+
+            // Mostramos la lista de comandos disponibles
+            std::cout << "\n=== Comandos disponibles en Cuacker ===" << std::endl;
+            std::cout << "  mcuac <usuario> <fecha> <mensaje>  - Publicar un cuac manual" << std::endl;
+            std::cout << "  pcuac <usuario> <fecha> <numero>   - Publicar un cuac predefinido" << std::endl;
+            std::cout << "  last <N>                           - Ver los ultimos N cuacs" << std::endl;
+            std::cout << "  follow <usuario>                   - Ver cuacs de un usuario" << std::endl;
+            std::cout << "  date <fecha_ini> <fecha_fin>       - Cuacs en un rango de fechas" << std::endl;
+            std::cout << "  tag <#hashtag>                     - Buscar por hashtag" << std::endl;
+            std::cout << "  search <texto>                     - Buscar texto en los cuacs" << std::endl;
+            std::cout << "  stats                              - Estadisticas del sistema" << std::endl;
+            std::cout << "  help                               - Mostrar esta ayuda" << std::endl;
+            std::cout << "  exit                               - Salir de Cuacker" << std::endl;
+            std::cout << "=============================\n" << std::endl;
 
         } else {
             // Informamos al usuario de que no reconocemos el comando introducido
-            std::cerr << "Error: comando '" << comando << "' no reconocido." << std::endl;
+            std::cerr << "Error: comando '" << comando << "' no reconocido. Escribe 'help' para ver la lista de comandos disponibles. " << std::endl;
         }
     }
 }

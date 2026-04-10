@@ -32,6 +32,12 @@ class Cuac {
         // Constructor por defecto para inicializar el ID autoincremental
         Cuac();
 
+        // Constructor parametrizado para performance tests
+        Cuac(std::string usuario, std::string mensaje, Fecha fecha);
+
+        // Constructor para reconstruir el cuac desde fichero (Persistencia Nivel 3)
+        Cuac(std::string usuario, Fecha fecha, std::string tipo_cuac, std::string mensaje, int numero_predefinido);
+
         /**
          * @brief Leemos un cuac desde la entrada estándar.
          * Según el tipo de cuac que recibamos, gestionamos la lectura del texto o del código numérico.
@@ -49,8 +55,12 @@ class Cuac {
         const Fecha& get_fecha() const;
         const std::string& get_usuario() const;
 
-        // get_texto() devuelve por valor porque en el caso pcuac generamos el texto dinámicamente desde el catálogo de mensajes
+        // get_texto() devuelve por valor porque en el caso 'pcuac' generamos el texto dinámicamente desde el catálogo de mensajes
         std::string get_texto() const;
+
+        // Getters para exportar los datos originales puros a fichero (Persistencia)
+        const std::string& get_tipo_cuac() const;
+        int get_numero_predefinido() const;
 
         // Getter del ID del cuac (necesario para el árbol)
         int get_id() const;

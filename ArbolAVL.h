@@ -74,6 +74,7 @@ private:
     Nodo* insertar_recursivo(Nodo* nodo_actual, Cuac* nuevo_cuac);
     void buscar_ultimos_recursivo(Nodo* nodo_actual, int& cuacs_restantes, int& contador_posicion);
     void buscar_por_rango_recursivo(Nodo* nodo_actual, const Fecha& fecha_inicio, const Fecha& fecha_fin, int& contador_total);
+    void buscar_texto_recursivo(Nodo* nodo_actual, const std::string& texto, int& contador_total);
 
 public:
     /**
@@ -88,4 +89,5 @@ public:
     void insertar(Cuac* cuac_a_insertar);
     void date(const Fecha& fecha_inicio, const Fecha& fecha_fin);
     void last(int cantidad_a_mostrar);
+    void search(const std::string& texto);
 };
