@@ -2,76 +2,72 @@
 
 [Leer en Español](README.md)
 
-Small university project in C++ for Algorithms and Data Structure course, as a first approach to building a data management engine.
-
 A high-performance data management engine developed in C++. This project simulates a microblogging platform (similar to Twitter/X) focused on algorithmic efficiency, utilizing advanced data structures for the storage, search, and retrieval of "Cuacs" (the platform's equivalent of "tweets").
 
 ## Key Features
 
-1. **Hybrid Data Structures**: Implementation of AVL Trees for ordered searches by date and ID, combined with Hash Tables for rapid indexed access.
-   - AVL Trees guarantee logarithmic search, insertion, and deletion times of $O(logn)$.
-   - The Hash Table enables key-based searches with an average constant complexity of $O(1)$.
+1. **Hybrid Structures & Dynamic Scaling**: 
+   - **Hash Table with Rehash**: $O(1)$ indexed access. Features automatic dynamic resizing (load factor >0.75) to maintain performance at scale.
+   - **AVL Trees**: Guaranteed $O(log n)$ temporal and ID searches via self-balancing tree branches (rotations).
+   
+2. **Data Persistence (CSV Engine)**:
+   - Custom serialization engine in `Persistencia.cpp` that tracks system state in `cuacs.dat`.
+   - Automatic background loading on startup and safe-saving on exit or via the `save` command.
 
-2. **Command Interpreter**: Features an `Interprete` module capable of parsing and executing custom instructions from the terminal in real-time.
+3. **Clean Architecture Layout**:
+   - Strict separation of concerns (SoC):
+     - `src/model`: Pure data entities.
+     - `src/storage`: Data engines and indexing logic.
+     - `src/cli`: User interaction layer.
+   - Professional build system powered by **CMake**.
 
-3. **Entity Management (Cuacs)**: Comprehensive handling of complex objects including unique IDs, timestamps (via the `Fecha` class), and text content. The Dictionary Manager (`DiccionarioCuacs`) coordinates redundancy between the tree and the table to provide maximum query versatility.
-
-4. **Integrated Documentation**: Doxygen configuration is ready to automatically generate the technical manual.
+4. **Full CRUD Lifecycle**:
+   - Implemented real `delete` functionality with AVL tree rebalancing and synchronized Hash Table purging.
 
 ## Available Commands
 
-| Command | Action | Main Structure |
+| Command | Action | Complexity |
 |---|---|---|
-| `mcuac` / `pcuac` | Post a new Cuac | Hash Table + AVL Tree |
-| `follow <user>` | View all cuacs from a user | Hash Table ($O(1)$) |
-| `last <n>` | View the latest 'n' messages | AVL Tree ($O(log n)$) |
-| `date <start> <end>` | Search messages within a date range | AVL Tree ($O(log n)$) |
-| `tag <#hashtag>` | Search messages by hashtag | Map Index ($O(log n)$) |
-| `search <text>` | Full-text substring search | AVL Tree (Filtered) |
-| `stats` | System-wide global statistics | Real-time metadata |
+| `mcuac` / `pcuac` | Post a new Cuac | $O(1) + O(\log n)$ |
+| `follow <user>` | View all cuacs from a user | $O(1)_{\text{avg}} + O(k)$ |
+| `delete <id>` | Permanently delete a message | $O(\log n)$ |
+| `last <n>` | View the latest 'n' messages | $O(\log n + k)$ |
+| `date <F1> <F2>` | Messages in a date range | $O(\log n + k)$ |
+| `tag <#hashtag>` | Search via indexed tags | $O(\log n + k)$ |
+| `save` | Force database persistence | $O(n)$ |
+| `search <text>` | Search substring in messages | $O(n \cdot m)$ |
 
-## Performance Analysis (Stress Test)
+With:
+- **$n$**: Total number of Cuacs (messages) stored in the system.
+- **$k$**: Number of elements retrieved and displayed ("payload" of the response).
+- **$m$**: Length of the search string (for the `search` command).
 
-The system was benchmarked with **50,000 random cuacs**:
-- **Insertion:** Average of 137.5 microseconds per message (including AVL balancing).
-- **Hash Search:** Negligible time (< 0.001ms), confirming $O(1)$ constant access.
-- **AVL Search:** 100 `last` queries performed in 58ms over 50k elements.
+## 📊 Performance Benchmarks (300K Validated)
 
-*Note: These benchmarks confirm the scalability of the hybrid architecture even with large data volumes.*
+System robustness has been verified with a massive Stress Test:
+- **Insertion:** Sustained via **Dynamic Rehash** (table auto-scales up to +400,000 buckets).
+- **AVL Retrieval (`last`):** 4.18 ms for 100 queries over 300,000 elements ($O(\log n)$).
+- **1M Cuacs Projection:** ~4.6 ms (logarithmic growth, only 10% slower with 3x the data).
+- **Hash Search:** Instant access to any user among millions ($O(1)$).
 
-## Build System and Execution
-
-The project uses **CMake**, the industry standard for C++ software builds.
+## 🏗️ Build and Run
 
 ### Requirements
-- C++ Compiler (GCC/MinGW, Clang, or MSVC).
-- **CMake** (v3.10 or higher).
+- C++11 Compiler or higher (GCC/MinGW, Clang).
+- **CMake** (v3.10+).
 
-### Option A: Via Visual Studio Code/Antigravity (Recommended)
-1. Install the **CMake Tools** extension.
-2. Open the project folder in VS Code.
-3. Select your compiler (Kit) from the bottom status bar (e.g., `GCC` or `MinGW`).
-4. Click the **Build** (Gear icon) button in the bottom status bar.
-5. To run or start debugging, click the **Insect (Debug)** icon.
-
-### Option B: Via Command Line (CLI)
-If you prefer building from the terminal, follow these steps:
-
+### Quick Start
 ```bash
-# 1. Create a build directory (keeps source clean)
-mkdir build
-cd build
-
-# 2. Configure the project with CMake
+mkdir build && cd build
 cmake ..
-
-# 3. Compile the executable
 cmake --build .
 ```
 
-### Execution
-Once compiled, start the application (from the `build` directory):
+### 💡 Pro Tip
+To test the program with pre-loaded data:
+1. Rename the `cuacs_ejemplo.dat` file to `cuacs.dat` in the root folder.
+2. Run `./cuacker.exe`.
+3. You will see the system automatically restoring the sample welcome messages!
 
-```bash
-./cuacker.exe
-```
+---
+*Developed for Algorithms and Data Structures.*

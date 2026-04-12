@@ -76,6 +76,10 @@ private:
     void buscar_por_rango_recursivo(Nodo* nodo_actual, const Fecha& fecha_inicio, const Fecha& fecha_fin, int& contador_total);
     void buscar_texto_recursivo(Nodo* nodo_actual, const std::string& texto, int& contador_total);
 
+    // Funciones de eliminación
+    Nodo* eliminar_recursivo(Nodo* nodo_actual, int id_cuac, const Fecha& fecha_cuac);
+    Nodo* obtener_nodo_minimo(Nodo* nodo_actual);
+
 public:
     /**
      * @brief Constructor y destructor de nuestro árbol.
@@ -84,10 +88,28 @@ public:
     ~Arbol_AVL();
 
     /**
-     * @brief Interfaces públicas para las operaciones de nuestra red social.
+     * @brief Inserta un nuevo cuac en el árbol.
      */
     void insertar(Cuac* cuac_a_insertar);
+
+    /**
+     * @brief Filtra cuacs por rango de fechas.
+     */
     void date(const Fecha& fecha_inicio, const Fecha& fecha_fin);
+
+    /**
+     * @brief Muestra los últimos N cuacs.
+     */
     void last(int cantidad_a_mostrar);
+
+    /**
+     * @brief Busca texto en los cuacs.
+     */
     void search(const std::string& texto);
+
+    /**
+     * @brief Elimina un cuac por ID y fecha.
+     * @return void
+     */
+    void eliminar(int id_cuac, const Fecha& fecha_cuac);
 };

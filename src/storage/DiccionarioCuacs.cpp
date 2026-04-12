@@ -9,7 +9,7 @@
  * Inicializamos el contador de usuarios únicos a cero.
  */
 DiccionarioCuacs::DiccionarioCuacs(){
-    _num_usuarios_unicos = 0;
+    _num_usuarios_unicos = 0; // Inicializamos el contador de usuarios únicos a cero
 }
 
 /**
@@ -18,7 +18,6 @@ DiccionarioCuacs::DiccionarioCuacs(){
  * Almacenamos cada hashtag (sin el '#') como clave en nuestro mapa de índices.
  * @param texto Texto del cuac del que extraer los hashtags.
  * @param cuac_ptr Puntero al cuac que contiene los hashtags.
- * @return void
  */
 void DiccionarioCuacs::extraer_hashtags(const std::string& texto, Cuac* cuac_ptr) {
 
@@ -49,15 +48,15 @@ void DiccionarioCuacs::extraer_hashtags(const std::string& texto, Cuac* cuac_ptr
  * Primero guardamos el cuac en nuestra Tabla Hash (que es la dueña del objeto)
  * y usamos el puntero devuelto para indexarlo en nuestro Árbol AVL.
  * Además, extraemos los hashtags del texto para indexarlos en nuestro mapa.
- * @param nuevo Referencia al objeto Cuac que queremos insertar.
- * @return void
+ * @param nuevo Referencia constante al objeto Cuac que queremos insertar.
  */
-void DiccionarioCuacs::insertar(Cuac &nuevo){
+void DiccionarioCuacs::insertar(const Cuac &nuevo){
 
     bool es_nuevo_usuario = false;
 
-    // 1. Insertamos en la TablaHash y detectamos si el usuario es nuevo en una sola operación
+    // 1. Guardamos el cuac en la TablaHash y detectamos si el usuario es nuevo en una sola operación
     // Esto nos ahorra calcular el Hash y recorrer los buckets dos veces.
+    // Obtenemos el puntero al cuac insertado para usarlo en el árbol AVL y en el índice de hashtags
     Cuac* pt = _tabla_usuarios.insertar(nuevo, &es_nuevo_usuario); 
     
     // Si la inserción fue exitosa (pt no es nulo), procedemos a indexarlo
@@ -71,16 +70,50 @@ void DiccionarioCuacs::insertar(Cuac &nuevo){
         // 2. Insertamos el puntero en el árbol AVL para mantener el orden cronológico
         _arbol_fechas.insertar(pt);
 
+        // Indexamos el puntero (con el texto del cuac) en el mapa de hashtags (_indice_hashtags)
         // 3. Extraemos los hashtags (usando el nuevo optimizador de texto)
         extraer_hashtags(pt->get_texto(), pt);
+
+        // 4. Registramos el ID en el índice secundario para acceso instantáneo
+        _indice_ids[pt->get_id()] = pt;
     }
 }
+
+/**
+ * @brief Elimina una publicación de todo el sistema por su ID.
+ * Requiere coordinación entre Hash, AVL y el índice de Tags.
+ */
+void DiccionarioCuacs::eliminar(int id_cuac) {
+    // 1. Buscamos el puntero en el índice de IDs (O(1))
+    auto it_id = _indice_ids.find(id_cuac);
+    
+    if (it_id == _indice_ids.end()) {
+        std::cout << "[!] Error: No se ha encontrado el Cuac con ID " << id_cuac << std::endl;
+        return;
+    }
+
+    Cuac* pt = it_id->second;
+    std::string usuario = pt->get_usuario();
+    Fecha fecha = pt->get_fecha();
+
+    // 2. Borramos del Árbol AVL (O(log n))
+    _arbol_fechas.eliminar(id_cuac, fecha);
+
+    // 3. Borramos de la Tabla Hash principal (O(k_usuario))
+    // Usamos el nuevo método optimizado que va directo al bucket del usuario
+    _tabla_usuarios.eliminar(usuario, id_cuac);
+
+    // 4. Borramos del índice de IDs (O(1))
+    _indice_ids.erase(it_id);
+
+    std::cout << "[i] Cuac #" << id_cuac << " eliminado permanentemente de todas las estructuras." << std::endl;
+}
+
 
 /**
  * @brief Ejecutamos la búsqueda de los últimos 'N' mensajes.
  * Delegamos esta tarea a nuestro árbol, que está optimizado para recorridos temporales.
  * @param N Cantidad de mensajes a mostrar.
- * @return void
  */
 void DiccionarioCuacs::last(int N){
     _arbol_fechas.last(N);
@@ -90,9 +123,8 @@ void DiccionarioCuacs::last(int N){
  * @brief Gestionamos la recuperación de publicaciones de un usuario.
  * Consultamos directamente nuestra Tabla Hash para obtener los resultados de forma casi instantánea.
  * @param nombre Nombre del usuario cuyos cuacs queremos recuperar.
- * @return void
  */
-void DiccionarioCuacs::follow(std::string nombre){
+void DiccionarioCuacs::follow(const std::string& nombre){
 
     // Obtenemos la lista de cuacs del usuario
     std::list<Cuac> lista = _tabla_usuarios.follow(nombre);
@@ -120,18 +152,15 @@ void DiccionarioCuacs::follow(std::string nombre){
  * @param fecha Límite inferior del rango de búsqueda.
  * @param fecha2 Límite superior del rango de búsqueda.
  */
-void DiccionarioCuacs::date(Fecha fecha, Fecha fecha2){ 
+void DiccionarioCuacs::date(const Fecha& fecha, const Fecha& fecha2){ 
     // Ej. date 01/01/2022 31/12/2022
     _arbol_fechas.date(fecha, fecha2); 
 }
-
-// === NUEVAS FUNCIONALIDADES ===
 
 /**
  * @brief Buscamos y mostramos los cuacs que contienen un hashtag específico.
  * Consultamos nuestro índice de hashtags para obtener la lista de cuacs asociados.
  * @param hashtag El hashtag a buscar (con o sin '#').
- * @return void
  */
 void DiccionarioCuacs::tag(const std::string& hashtag) {
 
@@ -173,7 +202,6 @@ void DiccionarioCuacs::tag(const std::string& hashtag) {
  * @brief Buscamos cuacs cuyo texto contenga una subcadena específica.
  * Delegamos la búsqueda en nuestro Árbol AVL, que realiza un recorrido inorden (izquierda -> raíz -> derecha) filtrando por el contenido del texto.
  * @param texto Subcadena a buscar dentro del contenido de los cuacs.
- * @return void
  */
 void DiccionarioCuacs::search(const std::string& texto) {
 
@@ -202,4 +230,14 @@ void DiccionarioCuacs::stats() {
     }
     std::cout << "Total asociaciones tag-cuac: " << total_asociaciones << std::endl;
     std::cout << "===============================\n" << std::endl;
+}
+
+/**
+ * @brief Restaura el sistema re-insertando los cuacs pasados por parámetro.
+ * @param cuacs Lista de cuacs a insertar (const reference).
+ */
+void DiccionarioCuacs::cargarDesde(const std::list<Cuac>& cuacs) {
+    for (const Cuac& c : cuacs) {
+        insertar(c);
+    }
 }

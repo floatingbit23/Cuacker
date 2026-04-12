@@ -29,14 +29,19 @@ class Cuac {
         static int _contador_id;
 
     public:
+
+        // == CONSTRUCTORES ==
+
         // Constructor por defecto para inicializar el ID autoincremental
         Cuac();
 
-        // Constructor parametrizado para performance tests
+        // Constructor parametrizado para performance tests (ignorar)
         Cuac(std::string usuario, std::string mensaje, Fecha fecha);
 
-        // Constructor para reconstruir el cuac desde fichero (Persistencia Nivel 3)
+        // Constructor para reconstruir el cuac desde fichero (Persistencia de datos)
         Cuac(std::string usuario, Fecha fecha, std::string tipo_cuac, std::string mensaje, int numero_predefinido);
+
+        // == MÉTODOS ==
 
         /**
          * @brief Leemos un cuac desde la entrada estándar.
@@ -49,6 +54,8 @@ class Cuac {
          * Nos encargamos de dar formato a la salida para mostrar el usuario, la fecha y el contenido.
          */
         void write_cuac() const;
+
+        // == GETTERS ==
 
         // Definimos los getters como const y devolvemos por referencia constante
         // para evitar copias innecesarias y garantizar que nadie modifique nuestros datos

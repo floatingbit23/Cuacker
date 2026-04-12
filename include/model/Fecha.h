@@ -17,11 +17,25 @@ class Fecha {
 		int _dia, _mes, _anio, _hora, _minuto, _segundo;
 
 	public:
+
+		// == GETTERS ==
+
+		int get_dia() const { return _dia; }
+		int get_mes() const { return _mes; }
+		int get_anio() const { return _anio; }
+		int get_hora() const { return _hora; }
+		int get_minuto() const { return _minuto; }
+		int get_segundo() const { return _segundo; }
+
+		// == CONSTRUCTORES ==
+
 		// Constructor por defecto
 		Fecha();
 
 		// Constructor parametrizado para performance tests
 		Fecha(int d, int m, int a, int h, int min, int seg);
+
+		// == MÉTODOS ==
 
 		/**
 		 * @brief Capturamos la fecha desde el flujo de entrada.

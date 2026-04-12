@@ -2,6 +2,7 @@
 #include <string>
 #include "Fecha.h"
 #include "Cuac.h"
+#include "Persistencia.h"
 #include "Interprete.h"
 
 /**
@@ -16,6 +17,20 @@ Interprete::Interprete(){}
  */
 void Interprete::ejecutarCuacker(){
 
+    // Nombre del fichero de persistencia
+    const std::string f_datos = "cuacs.dat"; 
+
+    // Intentamos cargar la base de datos al inicio
+    std::list<Cuac> cargados = Persistencia::cargar(f_datos);
+
+    // Cargamos los cuacs en nuestro diccionario
+    _servicio_datos.cargarDesde(cargados);
+
+    // Si se cargaron cuacs, informamos al usuario
+    if (!cargados.empty()) {
+        std::cout << ">> Memoria persistente restaurada. " << _servicio_datos.numElem() << " cuacs disponibles." << std::endl;
+    }
+
     std::string comando;
 
     // Entramos en nuestro bucle de control infinito hasta que se solicite el cierre
@@ -24,7 +39,14 @@ void Interprete::ejecutarCuacker(){
         // Gestionamos el cierre de nuestra sesión
         if (comando == "exit"){
 
+            Persistencia::guardar(f_datos, _servicio_datos.exportar());
+            std::cout << "[i] Memoria persistente guardada con exito. Hasta la proxima!" << std::endl;
             break; // Salimos del bucle y finaliza el programa
+
+        } else if (comando == "save") { 
+            
+            Persistencia::guardar(f_datos, _servicio_datos.exportar());
+            std::cout << "[i] Memoria persistente guardada con exito." << std::endl;
 
         } else if (comando == "mcuac" || comando == "pcuac"){ // ej. "mcuac john hello world" o "pcuac john 123"
 
@@ -56,6 +78,14 @@ void Interprete::ejecutarCuacker(){
             std::cin >> usuario;
 
             _servicio_datos.follow(usuario);
+
+        } else if (comando == "delete") { // ej. "delete 123"
+
+            // Procesamos la solicitud de borrado
+            int id_a_borrar;
+            std::cin >> id_a_borrar;
+
+            _servicio_datos.eliminar(id_a_borrar);
 
         } else if (comando == "date"){ // ej. "date 01/01/2022 31/12/2022"
 
@@ -95,17 +125,19 @@ void Interprete::ejecutarCuacker(){
         } else if (comando == "help"){ // ej. "help"
 
             // Mostramos la lista de comandos disponibles
-            std::cout << "\n=== Comandos disponibles en Cuacker ===" << std::endl;
+            std::cout << "\n=== [i] Comandos disponibles en Cuacker ===" << std::endl;
             std::cout << "  mcuac <usuario> <fecha> <mensaje>  - Publicar un cuac manual" << std::endl;
             std::cout << "  pcuac <usuario> <fecha> <numero>   - Publicar un cuac predefinido" << std::endl;
             std::cout << "  last <N>                           - Ver los ultimos N cuacs" << std::endl;
             std::cout << "  follow <usuario>                   - Ver cuacs de un usuario" << std::endl;
+            std::cout << "  delete <id>                        - Borrar un cuac permanentemente" << std::endl;
             std::cout << "  date <fecha_ini> <fecha_fin>       - Cuacs en un rango de fechas" << std::endl;
             std::cout << "  tag <#hashtag>                     - Buscar por hashtag" << std::endl;
             std::cout << "  search <texto>                     - Buscar texto en los cuacs" << std::endl;
             std::cout << "  stats                              - Estadisticas del sistema" << std::endl;
+            std::cout << "  save                               - Guardar el estado actual en disco" << std::endl;
             std::cout << "  help                               - Mostrar esta ayuda" << std::endl;
-            std::cout << "  exit                               - Salir de Cuacker" << std::endl;
+            std::cout << "  exit                               - Guardar y salir de Cuacker" << std::endl;
             std::cout << "=============================\n" << std::endl;
 
         } else {

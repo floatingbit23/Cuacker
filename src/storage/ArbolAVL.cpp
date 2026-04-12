@@ -382,3 +382,96 @@ void Arbol_AVL::search(const std::string& texto) {
     // Mostramos el total de cuacs encontrados
     std::cout << "Total: " << contador_total << " cuac" << std::endl;
 }
+
+// === ELIMINACIÓN ===
+
+void Arbol_AVL::eliminar(int id_cuac, const Fecha& fecha_cuac) {
+    _raiz = eliminar_recursivo(_raiz, id_cuac, fecha_cuac);
+}
+
+Nodo* Arbol_AVL::obtener_nodo_minimo(Nodo* nodo_actual) {
+    Nodo* actual = nodo_actual;
+    while (actual->_hijoIzquierdo != nullptr) {
+        actual = actual->_hijoIzquierdo;
+    }
+    return actual;
+}
+
+Nodo* Arbol_AVL::eliminar_recursivo(Nodo* nodo_actual, int id_cuac, const Fecha& fecha_cuac) {
+    if (nodo_actual == nullptr) return nodo_actual;
+
+    if (fecha_cuac < nodo_actual->_fecha) {
+        nodo_actual->_hijoIzquierdo = eliminar_recursivo(nodo_actual->_hijoIzquierdo, id_cuac, fecha_cuac);
+    } else if (fecha_cuac > nodo_actual->_fecha) {
+        nodo_actual->_hijoDerecho = eliminar_recursivo(nodo_actual->_hijoDerecho, id_cuac, fecha_cuac);
+    } else {
+        // Encontramos el nodo de AVL de esta fecha. Buscamos el cuac dentro de la lista temporal.
+        if (id_cuac != -1) {
+            auto it = nodo_actual->_listaCuacs.begin();
+            while (it != nodo_actual->_listaCuacs.end()) {
+                if ((*it)->get_id() == id_cuac) {
+                    it = nodo_actual->_listaCuacs.erase(it);
+                    break;
+                } else {
+                    ++it;
+                }
+            }
+        }
+
+        // Si todavía hay Cuacs en esta fecha, hemos terminado. Retornamos el nodo intacto.
+        if (!nodo_actual->_listaCuacs.empty()) {
+            return nodo_actual;
+        }
+
+        // La lista está vacía. Debemos eliminar este nodo del Árbol AVL.
+        if (nodo_actual->_hijoIzquierdo == nullptr || nodo_actual->_hijoDerecho == nullptr) {
+            Nodo* temp = nodo_actual->_hijoIzquierdo ? nodo_actual->_hijoIzquierdo : nodo_actual->_hijoDerecho;
+
+            if (temp == nullptr) { // 0 Hijos
+                delete nodo_actual;
+                nodo_actual = nullptr;
+            } else { // 1 Hijo
+                nodo_actual->_hijoIzquierdo = nullptr;
+                nodo_actual->_hijoDerecho = nullptr;
+                delete nodo_actual;
+                nodo_actual = temp;
+            }
+        } else {
+            // 2 Hijos: Obtener sucesor inorden (el mínimo del subárbol derecho)
+            Nodo* temp = obtener_nodo_minimo(nodo_actual->_hijoDerecho);
+            
+            // Copiamos datos (Lista de punteros y Fecha)
+            nodo_actual->_fecha = temp->_fecha;
+            nodo_actual->_listaCuacs = temp->_listaCuacs;
+            
+            // Truco: Forzamos el borrado del sucesor limpiando su lista y pasando un ID trampa (-1)
+            temp->_listaCuacs.clear();
+            nodo_actual->_hijoDerecho = eliminar_recursivo(nodo_actual->_hijoDerecho, -1, temp->_fecha);
+        }
+    }
+
+    if (nodo_actual == nullptr) return nodo_actual;
+
+    // Actualizamos altura
+    nodo_actual->_altura = std::max(obtener_altura(nodo_actual->_hijoIzquierdo), obtener_altura(nodo_actual->_hijoDerecho)) + 1;
+
+    // Evaluamos el balanceo y aplicamos rotaciones si hace falta
+    int balance = obtener_balanceo(nodo_actual);
+
+    // Izquierda-Izquierda
+    if (balance > 1 && obtener_balanceo(nodo_actual->_hijoIzquierdo) >= 0) return giro_derecha(nodo_actual);
+    // Izquierda-Derecha
+    if (balance > 1 && obtener_balanceo(nodo_actual->_hijoIzquierdo) < 0) {
+        nodo_actual->_hijoIzquierdo = giro_izquierda(nodo_actual->_hijoIzquierdo);
+        return giro_derecha(nodo_actual);
+    }
+    // Derecha-Derecha
+    if (balance < -1 && obtener_balanceo(nodo_actual->_hijoDerecho) <= 0) return giro_izquierda(nodo_actual);
+    // Derecha-Izquierda
+    if (balance < -1 && obtener_balanceo(nodo_actual->_hijoDerecho) > 0) {
+        nodo_actual->_hijoDerecho = giro_derecha(nodo_actual->_hijoDerecho);
+        return giro_izquierda(nodo_actual);
+    }
+
+    return nodo_actual;
+}

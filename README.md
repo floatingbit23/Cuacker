@@ -6,70 +6,68 @@ Motor de gestión de datos de alto rendimiento desarrollado en C++. El proyecto 
 
 ## Características Principales
 
-1. **Estructuras Híbridas**: Implementación de Árboles AVL para búsquedas ordenadas por fecha e ID, y de Tablas Hash para acceso indexado veloz.
-   - Los AVL garantizan tiempos de búsqueda, inserción y borrado logarítmicos de $O(logn)$.
-   - La Tabla Hash permite búsquedas por clave con coste promedio constante $O(1)$.
+1. **Estructuras Híbridas y Escalado Dinámico**: 
+   - **Tabla Hash con Rehash**: Acceso indexado $O(1)$. Implementa redimensionamiento dinámico automático (factor de carga >0.75) para garantizar que el rendimiento no degrade con millones de usuarios.
+   - **Árboles AVL**: Búsquedas temporales y por ID garantizadas en $O(log n)$ mediante balanceo automático de ramas (rotaciones).
+   
+2. **Persistencia de Datos (CSV Engine)**:
+   - Motor de serialización propio en `Persistencia.cpp` que guarda el estado del sistema en `cuacs.dat`.
+   - Carga automática al inicio y guardado preventivo al salir o mediante comando `save`.
 
-2. **Intérprete de Comandos**: Incluye un módulo `Interprete` capaz de parsear y ejecutar instrucciones personalizadas desde la terminal en tiempo real.
+3. **Arquitectura Limpia**:
+   - Separación estricta de responsabilidades:
+     - `src/model`: Entidades de datos puros.
+     - `src/storage`: Motores de datos e índices (Estructuras de datos).
+     - `src/cli`: Capa de interacción con el usuario (Interfaz).
+   - Migración completa a un sistema de construcción profesional con **CMake**.
 
-3. **Gestión de Entidades (Cuacs)**: Manejo completo de objetos complejos que incluyen IDs únicos, *timestamps* (clase `Fecha`) y contenido de texto. El Gestor de Diccionario (`DiccionarioCuacs`) coordina la redundancia entre el árbol y la tabla para ofrecer versatilidad en las consultas.
-
-4. **Documentación Integrada**: Configuración de Doxygen lista para generar manual técnico automático.
+4. **Gestión de Ciclo de Vida (CRUD)**:
+   - Implementado el comando `delete` con rebalanceo real de árboles AVL y purga sincronizada en la Tabla Hash.
 
 ## Comandos Disponibles
 
-| Comando | Acción | Estructura Principal |
+| Comando | Acción | Complejidad |
 |---|---|---|
-| `mcuac` / `pcuac` | Publicar un nuevo Cuac | Tabla Hash + Árbol AVL |
-| `follow <usuario>` | Ver todos los cuacs de un usuario | Tabla Hash ($O(1)$) |
-| `last <n>` | Ver los últimos 'n' mensajes del sistema | Árbol AVL ($O(log n)$) |
-| `date <ini> <fin>` | Buscar mensajes en un rango de fechas | Árbol AVL ($O(log n)$) |
-| `tag <#hashtag>` | Buscar mensajes por hashtag | Índice Map ($O(log n)$) |
-| `search <texto>` | Búsqueda de texto completo | Árbol AVL (Filtrado) |
-| `stats` | Estadísticas globales del sistema | Metadatos en tiempo real |
+| `mcuac` / `pcuac` | Publicar un nuevo Cuac | $O(1) + O(\log n)$ |
+| `follow <usuario>` | Ver todos los cuacs de un usuario | $O(1)_{\text{avg}} + O(k)$ |
+| `delete <id>` | Eliminar un mensaje permanentemente | $O(\log n)$ |
+| `last <n>` | Ver los últimos 'n' mensajes del sistema | $O(\log n + k)$ |
+| `date <F1> <F2>` | Ver los ensajes en un rango de fechas | $O(\log n + k)$ |
+| `tag <#hashtag>` | Búsqueda por etiquetas indexadas | $O(\log n + k)$ |
+| `save` | Forzar guardado en base de datos | $O(n)$ |
+| `search <texto>` | Búsqueda de subcadena en mensajes | $O(n \cdot m)$ |
 
-## Análisis de Rendimiento (Stress Test)
+Siendo:
+- **$n$**: Número total de Cuacs (mensajes) almacenados en el sistema.
+- **$k$**: Número de elementos recuperados y mostrados (el "payload" de la respuesta).
+- **$m$**: Longitud de la cadena de texto buscada (en el comando `search`).
 
-Se ha sometido al sistema a una prueba de estrés con **50.000 cuacs** aleatorios:
-- **Inserción:** 137.5 microsegundos de media por mensaje (incluye balanceo AVL).
-- **Búsqueda Hash:** Tiempo insignificante (< 0.001ms), confirmando acceso $O(1)$.
-- **Búsqueda AVL:** 100 consultas `last` realizadas en 58ms sobre 50k elementos.
+## 📊 Benchmark de Rendimiento (Validado 300K)
 
-*Nota: Estos resultados demuestran la escalabilidad de la arquitectura híbrida incluso con grandes volúmenes de datos.*
+Se ha verificado la robustez del sistema con un Stress Test masivo:
+- **Inserción:** Sostenida gracias al **Rehash dinámico** (la tabla crece automáticamente hasta +400.000 buckets).
+- **Recuperación AVL (`last`):** 4.18 ms para 100 consultas sobre 300.000 elementos.
+- **Proyección 1M Cuacs:** ~4.6 ms (el crecimiento es logarítmico, solo un 10% más lento con el triple de datos).
+- **Búsqueda Hash:** Acceso instantáneo a cualquier usuario entre millones.
 
-## Construcción y Ejecución
-
-El proyecto utiliza **CMake**, el estándar de la industria para la construcción de software en C++.
+## 🏗️ Construcción y Ejecución
 
 ### Requisitos
-- Compilador de C++ (GCC/MinGW, Clang o MSVC).
-- **CMake** (v3.10 o superior).
+- Compilador C++11 o superior (GCC/MinGW, Clang).
+- **CMake** (v3.10+).
 
-### Opción A: Desde Visual Studio Code (Recomendado)
-1. Instala la extensión **CMake Tools**.
-2. Abre la carpeta del proyecto en VS Code.
-3. Elige tu compilador (Kit) en la barra inferior (ej. `GCC` o `MinGW`).
-4. Haz clic en el botón **Build** (Icono de engranaje) en la barra inferior.
-5. Para ejecutarlo o debugear, haz clic en el icono del **Bicho (Debug)**.
-
-### Opción B: Desde la Terminal (CLI)
-Si prefieres usar la línea de comandos, sigue estos pasos:
-
+### Instalación Rápida
 ```bash
-# 1. Crea una carpeta para la compilación (mantiene el código limpio)
-mkdir build
-cd build
-
-# 2. Configura el proyecto con CMake
+mkdir build && cd build
 cmake ..
-
-# 3. Compila el ejecutable
 cmake --build .
 ```
 
-### Ejecución
-Una vez compilado, inicia la aplicación (desde la carpeta `build`):
+### Tip de Ejemplo
+Para probar el programa con datos precargados:
+1. Renombra el archivo `cuacs_ejemplo.dat` a `cuacs.dat` en la carpeta raíz.
+2. Ejecuta `./cuacker.exe`.
+3. ¡Verás que el sistema restaura automáticamente 5 mensajes de bienvenida!
 
-```bash
-./cuacker.exe
-```
+---
+*Desarrollado para la asignatura de Algoritmos y Estructuras de Datos.*

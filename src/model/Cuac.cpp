@@ -7,6 +7,8 @@
 // Decidimos empezar en 1 para que el primer cuac tenga un ID natural.
 int Cuac::_contador_id = 1;
 
+// == CONSTRUCTORES ==
+
 /**
  * @brief Constructor por defecto.
  * Cada vez que creamos un nuevo objeto Cuac, le asignamos el valor actual del contador
@@ -15,9 +17,15 @@ int Cuac::_contador_id = 1;
 Cuac::Cuac() 
     : _numero_predefinido(0), _mensaje(""), _usuario(""), _tipo_cuac(""), _id(_contador_id++) {}
 
-// Constructor parametrizado para performance tests
+// Constructor parametrizado para performance tests (ignorar)
 Cuac::Cuac(std::string usuario, std::string mensaje, Fecha fecha) 
     : _numero_predefinido(0), _mensaje(mensaje), _usuario(usuario), _tipo_cuac("mcuac"), _fecha(fecha), _id(_contador_id++) {}
+
+// Constructor para reconstruir el cuac desde fichero (Persistencia de datos)
+Cuac::Cuac(std::string usuario, Fecha fecha, std::string tipo_cuac, std::string mensaje, int numero_predefinido) 
+    : _numero_predefinido(numero_predefinido), _mensaje(mensaje), _usuario(usuario), _tipo_cuac(tipo_cuac), _fecha(fecha), _id(_contador_id++) {}
+
+// == MÉTODOS ==
 
 /**
  * @brief Implementamos la lógica de lectura de un Cuac.
@@ -109,6 +117,14 @@ std::string Cuac::get_texto() const {
     }
 
     return "";
+}
+
+const std::string& Cuac::get_tipo_cuac() const {
+    return _tipo_cuac;
+}
+
+int Cuac::get_numero_predefinido() const {
+    return _numero_predefinido;
 }
 
 /**
