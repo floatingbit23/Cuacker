@@ -13,12 +13,16 @@ Fecha::Fecha(int d, int m, int a, int h, int min, int seg)
  * @brief Implementamos la lectura de la fecha.
  * En nuestro diseño, decidimos manejar la entrada saltándonos los caracteres
  * delimitadores (como '/' o ':') mediante una variable auxiliar.
+ * @return true si la lectura fue correcta, false en caso de error.
  */
 
-void Fecha::leer_fecha(){
+bool Fecha::leer_fecha(){
     // 'separador' es una variable auxiliar que usamos para "consumir" los caracteres especiales que no necesitamos
     char separador; 
-    std::cin >> _dia >> separador >> _mes >> separador >> _anio >> _hora >> separador >> _minuto >> separador >> _segundo;
+    if (!(std::cin >> _dia >> separador >> _mes >> separador >> _anio >> _hora >> separador >> _minuto >> separador >> _segundo)) {
+        return false;
+    }
+    return true;
 }
 
 /**

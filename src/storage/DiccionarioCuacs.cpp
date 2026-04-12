@@ -256,3 +256,101 @@ void DiccionarioCuacs::stats() {
 void DiccionarioCuacs::setPersistencia(Persistencia* p) {
     _persistencia = p;
 }
+
+// === GRAFO SOCIAL (Seguidores) ===
+
+/**
+ * @brief Carga los seguidos de un usuario desde una lista a la caché en RAM.
+ * Se llama al hacer login para tener el grafo disponible en O(1).
+ * @param usuario Nombre del usuario cuyo grafo cargar.
+ * @param seguidos Lista de nombres de usuarios seguidos.
+ */
+void DiccionarioCuacs::cargarGrafo(const std::string& usuario, const std::list<std::string>& seguidos) {
+
+    // Creamos el set de seguidos para este usuario
+    std::unordered_set<std::string> set_seguidos;
+
+    for (const std::string& s : seguidos) {
+        set_seguidos.insert(s);
+    }
+
+    // Almacenamos en la caché
+    _grafo_seguidores[usuario] = set_seguidos;
+}
+
+/**
+ * @brief Registra que 'seguidor' sigue a 'seguido'.
+ * Actualiza la caché en RAM y persiste en SQLite.
+ * @param seguidor Nombre del usuario que sigue.
+ * @param seguido Nombre del usuario seguido.
+ */
+void DiccionarioCuacs::seguir(const std::string& seguidor, const std::string& seguido) {
+
+    // 1. Actualizamos la caché en RAM
+    _grafo_seguidores[seguidor].insert(seguido);
+
+    // 2. Persistimos en SQLite (INSERT OR IGNORE)
+    if (_persistencia != nullptr) {
+        _persistencia->seguir(seguidor, seguido);
+    }
+}
+
+/**
+ * @brief Elimina la relación de seguimiento.
+ * @param seguidor Nombre del usuario que deja de seguir.
+ * @param seguido Nombre del usuario al que se deja de seguir.
+ * @return true si la relación existía y se eliminó, false en caso contrario.
+ */
+bool DiccionarioCuacs::dejarDeSeguir(const std::string& seguidor, const std::string& seguido) {
+
+    // 1. Buscamos en la caché
+    auto it = _grafo_seguidores.find(seguidor);
+
+    if (it == _grafo_seguidores.end()) {
+        return false; // El usuario no tiene grafo cargado
+    }
+
+    // Intentamos borrar del set
+    size_t eliminados = it->second.erase(seguido);
+
+    if (eliminados == 0) {
+        return false; // No seguía a ese usuario
+    }
+
+    // 2. Persistimos en SQLite
+    if (_persistencia != nullptr) {
+        _persistencia->dejarDeSeguir(seguidor, seguido);
+    }
+
+    return true;
+}
+
+/**
+ * @brief Devuelve el set de seguidos de un usuario desde la caché.
+ * @param usuario Nombre del usuario.
+ * @return Referencia constante al set de seguidos.
+ */
+const std::unordered_set<std::string>& DiccionarioCuacs::getSeguidos(const std::string& usuario) {
+
+    // Si el usuario no tiene entrada en el grafo, se crea un set vacío automáticamente
+    return _grafo_seguidores[usuario];
+}
+
+/**
+ * @brief Muestra los últimos N cuacs del timeline personalizado.
+ * Construye un set con los usuarios seguidos + el propio usuario y delega
+ * en el AVL filtrado.
+ * @param N Número de cuacs a mostrar.
+ * @param usuario_activo Nombre del usuario logueado.
+ */
+void DiccionarioCuacs::lastPersonalizado(int N, const std::string& usuario_activo) {
+
+    // 1. Construimos el set de usuarios permitidos: seguidos + uno mismo
+    std::unordered_set<std::string> usuarios_permitidos = _grafo_seguidores[usuario_activo];
+
+    // Incluimos al propio usuario en su timeline
+    usuarios_permitidos.insert(usuario_activo);
+
+    // 2. Delegamos en el AVL filtrado
+    _arbol_fechas.lastFiltrado(N, usuarios_permitidos);
+}

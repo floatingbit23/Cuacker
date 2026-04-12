@@ -2,6 +2,14 @@
 #include <list>
 #include <iostream>
 #include <algorithm> // Usamos std::max
+#include <string>
+
+using std::list;
+using std::cout;
+using std::endl;
+using std::max;
+using std::string;
+using std::unordered_set;
 
 /**
  * @brief Inicializamos nuestro Árbol AVL.
@@ -71,8 +79,8 @@ Nodo* Arbol_AVL::giro_derecha(Nodo* nodo_raiz_local) {
     nodo_raiz_local->_hijoIzquierdo = sub_arbol_derecho;
 
     // Actualizamos las alturas de los nodos que hemos movido
-    nodo_raiz_local->_altura = std::max(obtener_altura(nodo_raiz_local->_hijoIzquierdo), obtener_altura(nodo_raiz_local->_hijoDerecho)) + 1;
-    nuevo_hijo_izquierdo->_altura = std::max(obtener_altura(nuevo_hijo_izquierdo->_hijoIzquierdo), obtener_altura(nuevo_hijo_izquierdo->_hijoDerecho)) + 1;
+    nodo_raiz_local->_altura = max(obtener_altura(nodo_raiz_local->_hijoIzquierdo), obtener_altura(nodo_raiz_local->_hijoDerecho)) + 1;
+    nuevo_hijo_izquierdo->_altura = max(obtener_altura(nuevo_hijo_izquierdo->_hijoIzquierdo), obtener_altura(nuevo_hijo_izquierdo->_hijoDerecho)) + 1;
 
     return nuevo_hijo_izquierdo; // El antiguo hijo izquierdo se convierte en la nueva raíz local
 }
@@ -90,8 +98,8 @@ Nodo* Arbol_AVL::giro_izquierda(Nodo* nodo_raiz_local) {
     nuevo_hijo_derecho->_hijoIzquierdo = nodo_raiz_local;
     nodo_raiz_local->_hijoDerecho = sub_arbol_izquierdo;
 
-    nodo_raiz_local->_altura = std::max(obtener_altura(nodo_raiz_local->_hijoIzquierdo), obtener_altura(nodo_raiz_local->_hijoDerecho)) + 1;
-    nuevo_hijo_derecho->_altura = std::max(obtener_altura(nuevo_hijo_derecho->_hijoIzquierdo), obtener_altura(nuevo_hijo_derecho->_hijoDerecho)) + 1;
+    nodo_raiz_local->_altura = max(obtener_altura(nodo_raiz_local->_hijoIzquierdo), obtener_altura(nodo_raiz_local->_hijoDerecho)) + 1;
+    nuevo_hijo_derecho->_altura = max(obtener_altura(nuevo_hijo_derecho->_hijoIzquierdo), obtener_altura(nuevo_hijo_derecho->_hijoDerecho)) + 1;
 
     return nuevo_hijo_derecho; // Elevamos el hijo derecho a la posición superior
 }
@@ -132,7 +140,7 @@ Nodo* Arbol_AVL::insertar_recursivo(Nodo* nodo_actual, Cuac* nuevo_cuac) {
         bool insertado = false; 
 
         // Recorremos la lista de cuacs del nodo actual
-        for (std::list<Cuac*>::iterator it_lista = nodo_actual->_listaCuacs.begin(); it_lista != nodo_actual->_listaCuacs.end(); ++it_lista) {
+        for (list<Cuac*>::iterator it_lista = nodo_actual->_listaCuacs.begin(); it_lista != nodo_actual->_listaCuacs.end(); ++it_lista) {
             
             // Obtenemos el cuac existente
             Cuac* cuac_existente = *it_lista;
@@ -167,7 +175,7 @@ Nodo* Arbol_AVL::insertar_recursivo(Nodo* nodo_actual, Cuac* nuevo_cuac) {
 
     // Tras insertar, actualizamos la altura de nuestro nodo actual
     // (la altura de un nodo es 1 + la altura del mayor de sus hijos)
-    nodo_actual->_altura = std::max(obtener_altura(nodo_actual->_hijoIzquierdo), obtener_altura(nodo_actual->_hijoDerecho)) + 1;
+    nodo_actual->_altura = max(obtener_altura(nodo_actual->_hijoIzquierdo), obtener_altura(nodo_actual->_hijoDerecho)) + 1;
 
     // Comprobamos si nos hemos desbalanceado y aplicamos las rotaciones necesarias (si fuera necesario)
     int factor_balanceo = obtener_balanceo(nodo_actual);
@@ -240,9 +248,9 @@ void Arbol_AVL::buscar_ultimos_recursivo(Nodo* nodo_actual, int& cuacs_restantes
         if (cuacs_restantes <= 0) break;
         
         // Mostramos el cuac (Ej: 1. 10/10/2026 10:00:00 - Usuario1: Hola)
-        std::cout << contador_posicion << ". ";
+        cout << contador_posicion << ". ";
         cuac->write_cuac();
-        std::cout << "\n";
+        cout << "\n";
         
         // Actualizamos el contador de posición y el contador de cuacs restantes
         contador_posicion++;
@@ -281,9 +289,9 @@ void Arbol_AVL::buscar_por_rango_recursivo(Nodo* nodo_actual, const Fecha& fecha
             // Incrementamos el contador de cuacs encontrados
             contador_total++;
             // Mostramos el cuac (Ej: 1. 10/10/2026 10:00:00 - Usuario1: Hola)
-            std::cout << contador_total << ". ";
+            cout << contador_total << ". ";
             cuac->write_cuac();
-            std::cout << "\n";
+            cout << "\n";
         }
     }
 
@@ -314,7 +322,7 @@ void Arbol_AVL::date(const Fecha& fecha_inicio, const Fecha& fecha_fin) {
     buscar_por_rango_recursivo(_raiz, fecha_inicio, fecha_fin, contador_total);
 
     // Mostramos el total de cuacs encontrados
-    std::cout << "Total: " << contador_total << " cuac" << "\n"; // Ej: Total: 5 cuacs
+    cout << "Total: " << contador_total << " cuac" << "\n"; // Ej: Total: 5 cuacs
 }
 
 /**
@@ -329,9 +337,9 @@ void Arbol_AVL::last(int cantidad_a_mostrar) {
     buscar_ultimos_recursivo(_raiz, restantes, contador_posicion); // Llamamos al método recursivo
 
     // Calculamos el total de cuacs mostrados (cantidad_a_mostrar - restantes)
-    int total_mostrados = cantidad_a_mostrar - std::max(0, restantes); 
+    int total_mostrados = cantidad_a_mostrar - max(0, restantes); 
 
-    std::cout << "Total: " << total_mostrados << " cuac" << std::endl; // Ej: Total: 5 cuacs
+    cout << "Total: " << total_mostrados << " cuac" << endl; // Ej: Total: 5 cuacs
 }
 
 // === BÚSQUEDA DE TEXTO ===
@@ -343,7 +351,7 @@ void Arbol_AVL::last(int cantidad_a_mostrar) {
  * @param texto Subcadena que buscamos dentro del contenido de cada cuac.
  * @param contador_total Referencia al contador de cuacs que coinciden con la búsqueda.
  */
-void Arbol_AVL::buscar_texto_recursivo(Nodo* nodo_actual, const std::string& texto, int& contador_total) {
+void Arbol_AVL::buscar_texto_recursivo(Nodo* nodo_actual, const string& texto, int& contador_total) {
 
     // Caso base: si el nodo es nulo -> salimos del método recursivo
     if (nodo_actual == nullptr) return;
@@ -356,11 +364,11 @@ void Arbol_AVL::buscar_texto_recursivo(Nodo* nodo_actual, const std::string& tex
 
         // Comprobamos si el texto del cuac contiene la subcadena buscada
         // string::find devuelve npos si no encuentra la subcadena
-        if (cuac->get_texto().find(texto) != std::string::npos) {
+        if (cuac->get_texto().find(texto) != string::npos) {
             contador_total++;
-            std::cout << contador_total << ". ";
+            cout << contador_total << ". ";
             cuac->write_cuac();
-            std::cout << "\n";
+            cout << "\n";
         }
     }
 
@@ -372,7 +380,7 @@ void Arbol_AVL::buscar_texto_recursivo(Nodo* nodo_actual, const std::string& tex
  * @brief Método inicializador de búsqueda de texto en los cuacs.
  * @param texto Subcadena a buscar dentro del contenido de los cuacs.
  */
-void Arbol_AVL::search(const std::string& texto) {
+void Arbol_AVL::search(const string& texto) {
     
     int contador_total = 0;
 
@@ -380,7 +388,73 @@ void Arbol_AVL::search(const std::string& texto) {
     buscar_texto_recursivo(_raiz, texto, contador_total);
 
     // Mostramos el total de cuacs encontrados
-    std::cout << "Total: " << contador_total << " cuac" << std::endl;
+    cout << "Total: " << contador_total << " cuac" << endl;
+}
+
+// === TIMELINE PERSONALIZADO (Traversal Filtrado) ===
+
+/**
+ * @brief Traversal filtrado del AVL para el timeline personalizado.
+ * Misma lógica que buscar_ultimos_recursivo() (derecha→raíz→izquierda),
+ * pero solo muestra cuacs cuyo autor esté en el set de usuarios permitidos.
+ * @param nodo_actual Nodo actual del recorrido recursivo.
+ * @param cuacs_restantes Referencia al contador de cuacs que quedan por mostrar.
+ * @param contador_posicion Referencia al número de orden en la visualización.
+ * @param usuarios_permitidos Set O(1) con los nombres de usuarios cuyo contenido se incluye.
+ */
+void Arbol_AVL::buscar_ultimos_filtrado_recursivo(Nodo* nodo_actual, int& cuacs_restantes,
+    int& contador_posicion, const unordered_set<string>& usuarios_permitidos) {
+
+    // Caso base: nodo nulo o ya hemos mostrado todos los cuacs solicitados
+    if (nodo_actual == nullptr || cuacs_restantes <= 0) {
+        return;
+    }
+
+    // Primero visitamos la rama derecha (fechas más recientes)
+    buscar_ultimos_filtrado_recursivo(nodo_actual->_hijoDerecho, cuacs_restantes,
+        contador_posicion, usuarios_permitidos);
+
+    // Procesamos la lista de cuacs de este nodo
+    for (Cuac* cuac : nodo_actual->_listaCuacs) {
+
+        // Si ya hemos completado los cuacs solicitados, salimos
+        if (cuacs_restantes <= 0) break;
+
+        // Solo mostramos el cuac si su autor está en el set de usuarios permitidos
+        if (usuarios_permitidos.count(cuac->get_usuario()) > 0) {
+            cout << contador_posicion << ". ";
+            cuac->write_cuac();
+            cout << "\n";
+
+            contador_posicion++;
+            cuacs_restantes--;
+        }
+    }
+
+    // Si quedan cuacs por mostrar, exploramos la rama izquierda (fechas más antiguas)
+    if (cuacs_restantes > 0) {
+        buscar_ultimos_filtrado_recursivo(nodo_actual->_hijoIzquierdo, cuacs_restantes,
+            contador_posicion, usuarios_permitidos);
+    }
+}
+
+/**
+ * @brief Muestra los últimos N cuacs filtrados por un conjunto de usuarios.
+ * @param cantidad_a_mostrar Número máximo de cuacs a mostrar.
+ * @param usuarios_permitidos Set con los nombres de usuarios permitidos en el timeline.
+ */
+void Arbol_AVL::lastFiltrado(int cantidad_a_mostrar, const unordered_set<string>& usuarios_permitidos) {
+
+    int restantes = cantidad_a_mostrar;
+    int contador_posicion = 1;
+
+    // Recorremos el AVL filtrando por usuarios
+    buscar_ultimos_filtrado_recursivo(_raiz, restantes, contador_posicion, usuarios_permitidos);
+
+    // Calculamos el total de cuacs mostrados
+    int total_mostrados = cantidad_a_mostrar - max(0, restantes);
+
+    cout << "Total: " << total_mostrados << " cuac" << endl;
 }
 
 // === ELIMINACIÓN ===
@@ -453,7 +527,7 @@ Nodo* Arbol_AVL::eliminar_recursivo(Nodo* nodo_actual, int id_cuac, const Fecha&
     if (nodo_actual == nullptr) return nodo_actual;
 
     // Actualizamos altura
-    nodo_actual->_altura = std::max(obtener_altura(nodo_actual->_hijoIzquierdo), obtener_altura(nodo_actual->_hijoDerecho)) + 1;
+    nodo_actual->_altura = max(obtener_altura(nodo_actual->_hijoIzquierdo), obtener_altura(nodo_actual->_hijoDerecho)) + 1;
 
     // Evaluamos el balanceo y aplicamos rotaciones si hace falta
     int balance = obtener_balanceo(nodo_actual);

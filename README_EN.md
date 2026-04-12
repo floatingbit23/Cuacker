@@ -25,22 +25,45 @@ A high-performance data management engine developed in C++. This project simulat
 4. **Full CRUD Lifecycle**:
    - Implemented real `delete` functionality with AVL tree rebalancing and synchronized Hash Table purging.
 
+5. **Social Graph (Followers)**:
+   - `seguidores` table in SQLite with a **composite primary key** `(follower, followed)` that natively prevents duplicates.
+   - In-RAM graph cache using `unordered_map<string, unordered_set<string>>` for $O(1)$ lookups.
+   - **Personalised timeline**: the `last` command shows only cuacs from followed users + your own when a session is active.
+   - Lightweight session system via `login`/`logout` — without login, the system runs in global mode (fully backwards-compatible).
+
 ## Available Commands
 
-| Command | Action | Complexity |
-|---|---|---|
-| `mcuac` / `pcuac` | Post a new Cuac | $O(1) + O(\log n) + O(1)_{\text{db}}$ |
-| `follow <user>` | View all cuacs from a user | $O(1)_{\text{avg}} + O(k)$ |
-| `delete <id>` | Permanently delete a message | $O(\log n) + O(1)_{\text{db}}$ |
-| `last <n>` | View the latest 'n' messages | $O(\log n + k)$ |
-| `date <F1> <F2>` | Messages in a date range | $O(\log n + k)$ |
-| `tag <#hashtag>` | Search via indexed tags | $O(\log n + k)$ |
-| `check` | Verify database integrity | $O(1)$ |
-| `search <text>` | Search substring in messages | $O(n \cdot m)$ |
+### Posting & Search
+
+| Command | Operation | Complexity | Note |
+| :--- | :--- | :--- | :--- |
+| `mcuac <usr> <date> <msg>` | Post a manual message | $O(1) + O(\log n)$ | RAM + SQLite |
+| `pcuac <usr> <date> <num>` | Post a predefined message | $O(1) + O(\log n)$ | RAM + SQLite |
+| `follow <user>` | Follow a user and view their cuacs | $O(1)_{\text{avg}}$ | Hash + SQLite (graph) |
+| `last <N>` | Latest N cuacs (global or personal timeline) | $O(n)^*$ / $O(\log n)$ | Filtered or global AVL |
+| `date <f1> <f2>` | Cuacs in a date range | $O(\log n + k)$ | AVL (RAM) |
+| `tag <#hashtag>` | Search by hashtag | $O(\log n + k)$ | Hashtag index |
+| `search <text>` | Full-text search | $O(n \cdot m)$ | AVL in-order |
+| `delete <id>` | Delete cuac by ID | $O(\log n)$ | RAM + SQL DELETE |
+| `check` | Database integrity check | $O(1)$ | PRAGMA integrity |
+
+### Social Graph (requires `login`)
+
+| Command | Operation |
+| :--- | :--- |
+| `login <user>` | Start a session (loads graph from SQLite into RAM) |
+| `logout` | End session (reverts to global mode) |
+| `whoami` | Show the active session user |
+| `unfollow <user>` | Unfollow a user |
+| `following` | View the list of users you follow |
+| `followers` | View the list of users who follow you |
+
+> [!NOTE]
+> $^*$ `last` with an active session has $O(n)$ complexity as it traverses the full AVL applying the filter. The filter check via `unordered_set` is $O(1)$ per node, making it extremely fast in practice.
 
 With:
-- **$n$**: Total number of Cuacs (messages) stored in the system.
-- **$k$**: Number of elements retrieved and displayed ("payload" of the response).
+- **$n$**: Total number of Cuacs stored in the system.
+- **$k$**: Number of elements retrieved and displayed.
 - **$m$**: Length of the search string (for the `search` command).
 
 ## 📊 Performance Benchmarks (300K Validated)

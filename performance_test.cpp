@@ -7,11 +7,7 @@
 #include "DiccionarioCuacs.h"
 #include "Cuac.h"
 #include "Fecha.h"
-
-/**
- * @file performance_test.cpp
- * @brief Suite de pruebas de rendimiento para Cuacker (Optimizada Nivel 3).
- */
+#include "Persistencia.h"
 
 std::string generarUsuarioAleatorio(int longitud = 8) {
     static const char alphabet[] = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -28,30 +24,41 @@ std::string generarUsuarioAleatorio(int longitud = 8) {
 
 int main() {
     const int NUM_ELEMENTOS = 300000; 
-    std::cout << "=== CUACKER PERFORMANCE & TOLERANCE TEST (ID-INDEX OPTIMIZED) ===" << std::endl;
-    std::cout << "Sometiendo a estres con " << NUM_ELEMENTOS << " cuacs..." << std::endl << std::endl;
+    std::cout << "=== CUACKER PERFORMANCE & TOLERANCE TEST (SQLITE OPTIMIZED) ===" << std::endl;
+    std::cout << "Sometiendo a estres con " << NUM_ELEMENTOS << " cuacs..." << std::endl;
 
     DiccionarioCuacs diccionario;
+    Persistencia persistencia("test_stress.db");
+    persistencia.limpiarTodo(); // Empezamos de cero para el test
     
-    // Preparar datos en memoria para no penalizar el benchmark
+    // Preparar datos en memoria
     std::vector<Cuac*> cuacs_generados;
     for(int i=0; i<NUM_ELEMENTOS; ++i) {
         Fecha f(10, 4, 2026, 12, 0, i % 60);
         cuacs_generados.push_back(new Cuac(generarUsuarioAleatorio(), "Prueba de rendimiento #" + std::to_string(i), f));
     }
 
-    // --- TEST DE INSERSIÓN MASIVA ---
-    std::cout << "[1/4] Test de Insercion Masiva (Hash + AVL + ID-Index)..." << std::endl;
+    // --- TEST DE INSERSIÓN MASIVA CON TRANSACCIÓN ---
+    std::cout << "[1/4] Test de Insercion Masiva (RAM + SQLite Transaction)..." << std::endl;
     auto start = std::chrono::high_resolution_clock::now();
+
+    // Activamos persistencia
+    diccionario.setPersistencia(&persistencia);
+    
+    // Iniciamos transacción para que SQLite no frene la RAM
+    persistencia.ejecutar_comando("BEGIN TRANSACTION;");
 
     for (int i = 0; i < NUM_ELEMENTOS; ++i) {
         diccionario.insertar(*(cuacs_generados[i]));
         if (i % 50000 == 0 && i > 0) std::cout << "   ... " << i << " insertados" << std::endl;
     }
 
+    // Cerramos transacción: aquí es donde se vuelca todo a disco de golpe
+    persistencia.ejecutar_comando("COMMIT;");
+
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> total_insert = end - start;
-    std::cout << ">> Tiempo total de insercion: " << total_insert.count() << " segundos" << std::endl;
+    std::cout << ">> Tiempo total (300K inserts + SQL Commit): " << total_insert.count() << " segundos" << std::endl;
     std::cout << ">> Media por insercion: " << (total_insert.count() / NUM_ELEMENTOS) * 1000 << " ms\n" << std::endl;
 
     // --- TEST DE BÚSQUEDA HASH O(1) ---

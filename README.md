@@ -25,23 +25,46 @@ Motor de gestión de datos de alto rendimiento desarrollado en C++. El proyecto 
 4. **Gestión de Ciclo de Vida (CRUD)**:
    - Implementado el comando `delete` con rebalanceo real de árboles AVL y purga sincronizada en la Tabla Hash.
 
+5. **Grafo Social (Seguidores)**:
+   - Tabla `seguidores` en SQLite con **clave primaria compuesta** `(seguidor, seguido)` que elimina duplicados de forma nativa.
+   - Caché en RAM del grafo usando `unordered_map<string, unordered_set<string>>` para lookups $O(1)$.
+   - **Timeline personalizado**: el comando `last` muestra solo los cuacs de los usuarios seguidos + los propios cuando hay sesión activa.
+   - Sistema de sesión ligero con `login`/`logout` — sin login, el sistema funciona en modo global (retrocompatible).
+
 ## Comandos Disponibles
 
-| Comando | Acción | Complejidad |
-|---|---|---|
-| `mcuac` / `pcuac` | Publicar un nuevo Cuac | $O(1) + O(\log n) + O(1)_{\text{db}}$ |
-| `follow <usuario>` | Ver todos los cuacs de un usuario | $O(1)_{\text{avg}} + O(k)$ |
-| `delete <id>` | Eliminar un mensaje permanentemente | $O(\log n) + O(1)_{\text{db}}$ |
-| `last <n>` | Ver los últimos 'n' mensajes del sistema | $O(\log n + k)$ |
-| `date <F1> <F2>` | Ver los ensajes en un rango de fechas | $O(\log n + k)$ |
-| `tag <#hashtag>` | Búsqueda por etiquetas indexadas | $O(\log n + k)$ |
-| `check` | Verificar integridad de la base de datos | $O(1)$ |
-| `search <texto>` | Búsqueda de texto (subcadena) en mensajes | $O(n \cdot m)$ |
+### Publicación y Búsqueda
+
+| Comando | Operación | Complejidad | Nota |
+| :--- | :--- | :--- | :--- |
+| `mcuac <usr> <fecha> <msg>` | Publicar mensaje manual | $O(1) + O(\log n)$ | RAM + SQLite |
+| `pcuac <usr> <fecha> <num>` | Publicar mensaje predefinido | $O(1) + O(\log n)$ | RAM + SQLite |
+| `follow <usuario>` | Seguir a un usuario y ver sus cuacs | $O(1)_{\text{avg}}$ | Hash + SQLite (grafo) |
+| `last <N>` | Últimos N cuacs (global o timeline personal) | $O(n)^*$ / $O(\log n)$ | AVL filtrado o global |
+| `date <f1> <f2>` | Cuacs en rango de fechas | $O(\log n + k)$ | AVL (RAM) |
+| `tag <#hashtag>` | Búsqueda por hashtag | $O(\log n + k)$ | Índice hashtags |
+| `search <texto>` | Búsqueda de texto libre | $O(n \cdot m)$ | AVL inorden |
+| `delete <id>` | Borrar cuac por ID | $O(\log n)$ | RAM + SQL DELETE |
+| `check` | Verificar integridad de la BBDD | $O(1)$ | PRAGMA integrity |
+
+### Grafo Social (requiere `login`)
+
+| Comando | Operación |
+| :--- | :--- |
+| `login <usuario>` | Iniciar sesión (carga grafo en RAM desde SQLite) |
+| `logout` | Cerrar sesión (vuelve al modo global) |
+| `whoami` | Mostrar el usuario con sesión activa |
+| `unfollow <usuario>` | Dejar de seguir a un usuario |
+| `following` | Ver la lista de usuarios que sigues |
+| `followers` | Ver la lista de usuarios que te siguen |
+
+> [!NOTE]
+> $^*$ `last` con login activo tiene complejidad $O(n)$ porque recorre todo el AVL aplicando el filtro. El filtrado por `unordered_set` es $O(1)$ por nodo, por lo que en la práctica es extremadamente rápido.
 
 Siendo:
-- **$n$**: Número total de Cuacs (mensajes) almacenados en el sistema.
-- **$k$**: Número de elementos recuperados y mostrados (el "payload" de la respuesta).
-- **$m$**: Longitud de la cadena de texto buscada (en el comando `search`).
+- **$n$**: Número total de Cuacs almacenados en el sistema.
+- **$k$**: Número de elementos recuperados y mostrados.
+- **$m$**: Longitud de la cadena buscada (comando `search`).
 
 ## 📊 Benchmark de Rendimiento (Validado 300K)
 

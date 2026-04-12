@@ -7,6 +7,7 @@
  * de forma balanceada, garantizando tiempos de acceso logarítmicos.
  */
 #include <list>
+#include <unordered_set>
 #include "Cuac.h"
 
 /**
@@ -76,6 +77,10 @@ private:
     void buscar_por_rango_recursivo(Nodo* nodo_actual, const Fecha& fecha_inicio, const Fecha& fecha_fin, int& contador_total);
     void buscar_texto_recursivo(Nodo* nodo_actual, const std::string& texto, int& contador_total);
 
+    /** @brief Traversal filtrado (derecha→raíz→izquierda) para timeline personalizado. */
+    void buscar_ultimos_filtrado_recursivo(Nodo* nodo_actual, int& cuacs_restantes,
+        int& contador_posicion, const std::unordered_set<std::string>& usuarios_permitidos);
+
     // Funciones de eliminación
     Nodo* eliminar_recursivo(Nodo* nodo_actual, int id_cuac, const Fecha& fecha_cuac);
     Nodo* obtener_nodo_minimo(Nodo* nodo_actual);
@@ -112,4 +117,12 @@ public:
      * @return void
      */
     void eliminar(int id_cuac, const Fecha& fecha_cuac);
+
+    /**
+     * @brief Muestra los últimos N cuacs filtrados por un conjunto de usuarios.
+     * Solo muestra cuacs cuyo autor esté en el set de usuarios permitidos.
+     * @param cantidad_a_mostrar Número de cuacs a mostrar.
+     * @param usuarios_permitidos Set de nombres de usuarios cuyos cuacs se incluyen.
+     */
+    void lastFiltrado(int cantidad_a_mostrar, const std::unordered_set<std::string>& usuarios_permitidos);
 };

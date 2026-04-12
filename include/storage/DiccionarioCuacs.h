@@ -14,6 +14,7 @@
 #include <map>
 #include <list>
 #include <unordered_map>
+#include <unordered_set>
 
 /*
  * Forward declaration para evitar dependencia circular,
@@ -60,6 +61,13 @@ private:
    * @brief Contador de usuarios únicos registrados en la red social.
    */
   int _num_usuarios_unicos;
+
+  /**
+   * @brief Caché en RAM del grafo social (seguidores).
+   * KEY: nombre de usuario -> VALUE: set de usuarios que sigue.
+   * Se carga desde SQLite al hacer login y se actualiza en tiempo real.
+   */
+  std::unordered_map<std::string, std::unordered_set<std::string>> _grafo_seguidores;
 
   /**
    * @brief Puntero a la capa de persistencia SQLite (inyectado externamente).
@@ -134,9 +142,55 @@ public:
   int numElem() const { return _tabla_usuarios.nElem(); }
 
   /**
+   * @brief Comprobamos si un usuario existe en el sistema.
+   * @param nombre Nombre del usuario a comprobar.
+   * @return true si existe, false en caso contrario.
+   */
+  bool existeUsuario(const std::string& nombre) { return _tabla_usuarios.existeUsuario(nombre); }
+
+  /**
    * @brief Inyecta la referencia a la capa de Persistencia.
    * Se llama DESPUÉS de cargar los datos iniciales para activar el auto-guardado.
    * @param p Puntero a la instancia de Persistencia (no es dueño de la instancia).
    */
   void setPersistencia(Persistencia* p);
+
+  // === GRAFO SOCIAL (Seguidores) ===
+
+  /**
+   * @brief Carga los seguidos de un usuario desde SQLite a la caché en RAM.
+   * @param usuario Nombre del usuario cuyo grafo cargar.
+   * @param seguidos Lista de seguidos (obtenida previamente de Persistencia).
+   */
+  void cargarGrafo(const std::string& usuario, const std::list<std::string>& seguidos);
+
+  /**
+   * @brief Registra que 'seguidor' sigue a 'seguido' (RAM + SQLite).
+   * @param seguidor Nombre del usuario que sigue.
+   * @param seguido Nombre del usuario seguido.
+   */
+  void seguir(const std::string& seguidor, const std::string& seguido);
+
+  /**
+   * @brief Elimina la relación de seguimiento (RAM + SQLite).
+   * @param seguidor Nombre del usuario que deja de seguir.
+   * @param seguido Nombre del usuario al que se deja de seguir.
+   * @return true si la relación existía, false en caso contrario.
+   */
+  bool dejarDeSeguir(const std::string& seguidor, const std::string& seguido);
+
+  /**
+   * @brief Devuelve el set de seguidos de un usuario (desde la caché en RAM).
+   * @param usuario Nombre del usuario.
+   * @return Referencia al set de seguidos (vacío si no tiene login).
+   */
+  const std::unordered_set<std::string>& getSeguidos(const std::string& usuario);
+
+  /**
+   * @brief Muestra los últimos N cuacs filtrados por los seguidos de un usuario.
+   * Incluye los cuacs propios del usuario en el timeline.
+   * @param N Número de cuacs a mostrar.
+   * @param usuario_activo Nombre del usuario logueado.
+   */
+  void lastPersonalizado(int N, const std::string& usuario_activo);
 };

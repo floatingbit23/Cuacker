@@ -15,6 +15,8 @@ class Interprete {
         // Mantenemos una instancia de nuestro núcleo de datos
         DiccionarioCuacs _servicio_datos;
 
+        // Nombre del usuario con sesión activa (vacío = sin login, timeline global)
+        std::string _usuario_activo;
     public:
         /**
          * @brief Preparamos nuestro intérprete.

@@ -46,19 +46,38 @@ bool Cuac::read_cuac(std::string cuac_type_read){
 	}
 
     // Procedemos a leer la fecha asociada al cuac usando nuestro método de clase Fecha
-    _fecha.leer_fecha();
+    if (!_fecha.leer_fecha()) {
+
+        // Si la fecha no se pudo leer...
+        std::cin.clear(); // Limpiamos el estado de error de cin
+
+        std::string basura; // Variable auxiliar para consumir el resto de la línea "mala"
+        std::getline(std::cin, basura); 
+
+        std::cerr << "[!] Error: Formato de fecha incompleto. Usa: DD/MM/AAAA HH:MM:SS" << std::endl;
+
+        return false; // Devolvemos false para indicar que la lectura falló
+    }
 
     // Dependiendo del tipo de cuac, gestionamos el cuerpo del mensaje de forma distinta
     if (_tipo_cuac == "mcuac"){
 
         // Limpiamos el buffer para evitar problemas con saltos de línea y leemos toda la cadena
-        std::cin.ignore();
+        // Solo ignoramos si hay algo que ignorar (evita comerse el primer caracter si no hay espacio)
+        if (std::cin.peek() == ' ') std::cin.ignore();
+        
         std::getline(std::cin, _mensaje);
 
     } else if (_tipo_cuac == "pcuac"){
 
         // Si es un cuac predefinido, simplemente leemos el índice numérico
-        std::cin >> _numero_predefinido;
+        if (!(std::cin >> _numero_predefinido)) {
+            std::cin.clear();
+            std::string basura;
+            std::getline(std::cin, basura);
+            std::cerr << "[!] Error: Se esperaba un numero para el mensaje predefinido." << std::endl;
+            return false;
+        }
         std::cin.ignore();
 
     }

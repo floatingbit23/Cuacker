@@ -17,8 +17,11 @@ class Persistencia {
 private:
     sqlite3* _db;                    // Conexión activa a la BBDD
 
-    sqlite3_stmt* _stmt_insertar;    // Prepared statement reutilizable para INSERTs
-    sqlite3_stmt* _stmt_eliminar;    // Prepared statement reutilizable para DELETEs
+    sqlite3_stmt* _stmt_insertar;    // Prepared statement reutilizable para INSERTs de cuacs
+    sqlite3_stmt* _stmt_eliminar;    // Prepared statement reutilizable para DELETEs de cuacs
+
+    sqlite3_stmt* _stmt_seguir;      // Prepared statement para INSERT OR IGNORE en seguidores
+    sqlite3_stmt* _stmt_dejar;       // Prepared statement para DELETE de seguidores
 
     /*
     Los PREPARED STATEMENTS son sentencias SQL que se precompilan
@@ -30,6 +33,9 @@ private:
     /** @brief Crea la tabla y los índices si no existen. */
     void crearEsquema();
 
+    /** @brief Borra la tabla y los índices si existen (uso interno). */
+    void borrarEsquema();
+
 public:
 
     /**
@@ -37,7 +43,6 @@ public:
      * @param ruta_db Ruta al fichero de la base de datos SQLite.
      */
     Persistencia(const std::string& ruta_db);
-
 
     /** @brief Destructor. Finaliza los statements y cierra la conexión. */
     ~Persistencia();
@@ -60,9 +65,48 @@ public:
      */
     void eliminar(int id_cuac);
 
+    // === GRAFO SOCIAL (Seguidores) ===
+
     /**
-     * @brief Ejecuta PRAGMA (la sentencia SQL, no el #pragma) integrity_check para verificar la salud de la BBDD.
+     * @brief Registra una relación de seguimiento en la BBDD.
+     * Usa INSERT OR IGNORE para idempotencia (seguir dos veces no es error).
+     * @param seguidor Nombre del usuario que sigue.
+     * @param seguido Nombre del usuario seguido.
+     */
+    void seguir(const std::string& seguidor, const std::string& seguido);
+
+    /**
+     * @brief Elimina una relación de seguimiento de la BBDD.
+     * @param seguidor Nombre del usuario que deja de seguir.
+     * @param seguido Nombre del usuario al que se deja de seguir.
+     */
+    void dejarDeSeguir(const std::string& seguidor, const std::string& seguido);
+
+    /**
+     * @brief Carga la lista de usuarios seguidos por un usuario.
+     * @param usuario Nombre del usuario cuya lista de seguidos queremos.
+     * @return Lista de nombres de usuarios seguidos.
+     */
+    std::list<std::string> cargarSeguidos(const std::string& usuario);
+
+    /**
+     * @brief Carga la lista de seguidores de un usuario.
+     * @param usuario Nombre del usuario cuyos seguidores queremos.
+     * @return Lista de nombres de seguidores.
+     */
+    std::list<std::string> cargarSeguidores(const std::string& usuario);
+
+    /**
+     * @brief Verifica la salud de la BBDD.
      * @return true si la BBDD está íntegra, false si se detectaron problemas.
      */
     bool verificarIntegridad();
+
+    // === HERRAMIENTAS DE TEST / USO AVANZADO ===
+
+    /** @brief Borra todos los datos de la base de datos (para tests). */
+    void limpiarTodo();
+
+    /** @brief Ejecuta un comando SQL genérico (como BEGIN TRANSACTION). */
+    void ejecutar_comando(const std::string& sql);
 };

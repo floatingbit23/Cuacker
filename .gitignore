@@ -45,6 +45,11 @@ install_manifest.txt
 .vscode/obj/
 
 # --- Proyecto Cuacker ---
-cuacs.dat               # Base de datos real del usuario
-stress_test.exe         # Binario de pruebas de rendimiento
-test_output_1M_final.txt
+cuacs.dat
+cuacs.db
+cuacs.db-shm
+cuacs.db-wal
+*.db
+*.db-shm
+*.db-wal
+stress_test.exe

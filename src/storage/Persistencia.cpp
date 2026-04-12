@@ -13,7 +13,8 @@
  * @param ruta_db Ruta al fichero .db (se crea automáticamente si no existe).
  */
 Persistencia::Persistencia(const std::string& ruta_db) 
-    : _db(nullptr), _stmt_insertar(nullptr), _stmt_eliminar(nullptr), _ruta_db(ruta_db) {
+    : _db(nullptr), _stmt_insertar(nullptr), _stmt_eliminar(nullptr),
+      _stmt_seguir(nullptr), _stmt_dejar(nullptr), _ruta_db(ruta_db) {
 
     // _db es un puntero a sqlite3, que es la estructura que representa la conexión a la BBDD,
     //  se inicializa a nullptr porque no hay conexión al principio
@@ -44,25 +45,51 @@ Persistencia::Persistencia(const std::string& ruta_db)
 
     const char* sql_delete = "DELETE FROM cuacs WHERE id = ?;";
 
-    rc = sqlite3_prepare_v2(_db, sql_insert, -1, &_stmt_insertar, nullptr);
+    // Preparamos el statement para INSERT
+    rc = sqlite3_prepare_v2(_db, sql_insert, -1, &_stmt_insertar, nullptr); 
+
+    // Si la preparación del statement falla, mostramos un error y salimos
     if (rc != SQLITE_OK) {
         std::cerr << "[!] Error al preparar INSERT: " << sqlite3_errmsg(_db) << std::endl;
     }
 
+    // Preparamos el statement para DELETE
     rc = sqlite3_prepare_v2(_db, sql_delete, -1, &_stmt_eliminar, nullptr);
+    
+    // Si la preparación del statement falla, mostramos un error y salimos
     if (rc != SQLITE_OK) {
         std::cerr << "[!] Error al preparar DELETE: " << sqlite3_errmsg(_db) << std::endl;
+    }
+
+    // Precompilamos los prepared statements para el GRAFO SOCIAL (seguidores)
+    const char* sql_seguir = "INSERT OR IGNORE INTO seguidores (seguidor, seguido) VALUES (?, ?);";
+    const char* sql_dejar  = "DELETE FROM seguidores WHERE seguidor = ? AND seguido = ?;";
+
+    // Preparamos el statement para FOLLOW
+    rc = sqlite3_prepare_v2(_db, sql_seguir, -1, &_stmt_seguir, nullptr);
+
+    if (rc != SQLITE_OK) {
+        std::cerr << "[!] Error al preparar FOLLOW: " << sqlite3_errmsg(_db) << std::endl;
+    }
+
+    // Preparamos el statement para UNFOLLOW
+    rc = sqlite3_prepare_v2(_db, sql_dejar, -1, &_stmt_dejar, nullptr);
+
+    if (rc != SQLITE_OK) {
+        std::cerr << "[!] Error al preparar UNFOLLOW: " << sqlite3_errmsg(_db) << std::endl;
     }
 }
 
 /**
- * @brief Destructor: libera los prepared statements y cierra la conexión SQLite.
- * Se ejecuta automáticamente al salir del scope (RAII).
+ * @brief Destructor: libera los Prepared Statements y cierra la conexión SQLite.
+ * Se ejecuta automáticamente al salir del scope.
  */
 Persistencia::~Persistencia() {
-    if (_stmt_insertar) sqlite3_finalize(_stmt_insertar);
-    if (_stmt_eliminar) sqlite3_finalize(_stmt_eliminar);
-    if (_db) sqlite3_close(_db);
+    if (_stmt_insertar) sqlite3_finalize(_stmt_insertar); // Libera el prepared statement de INSERT
+    if (_stmt_eliminar) sqlite3_finalize(_stmt_eliminar); // Libera el prepared statement de DELETE
+    if (_stmt_seguir)   sqlite3_finalize(_stmt_seguir);   // Libera el prepared statement de FOLLOW
+    if (_stmt_dejar)    sqlite3_finalize(_stmt_dejar);     // Libera el prepared statement de UNFOLLOW
+    if (_db) sqlite3_close(_db); // Cierra la conexión a la base de datos
 }
 
 /**
@@ -86,16 +113,20 @@ void Persistencia::crearEsquema() {
         "    numero_predefinido  INTEGER DEFAULT 0"
         ");";
 
+    // Índice para el comando 'follow'
     const char* sql_indice_usuario = 
         "CREATE INDEX IF NOT EXISTS idx_cuacs_usuario ON cuacs(usuario);";
 
+    // Índice compuesto para el comando 'date'
     const char* sql_indice_fecha = 
         "CREATE INDEX IF NOT EXISTS idx_cuacs_fecha ON cuacs(anio, mes, dia, hora, minuto, segundo);";
 
-    char* err_msg = nullptr;
+    char* err_msg = nullptr; // Puntero que almacenará el mensaje de error si ocurre alguno
 
     // Ejecutamos la creación de la tabla
     int rc = sqlite3_exec(_db, sql_crear_tabla, nullptr, nullptr, &err_msg);
+
+    // Si la creación de la tabla falla, mostramos un error y salimos
     if (rc != SQLITE_OK) {
         std::cerr << "[!] Error al crear tabla: " << err_msg << std::endl;
         sqlite3_free(err_msg);
@@ -103,6 +134,8 @@ void Persistencia::crearEsquema() {
 
     // Creamos el índice por usuario (para el comando 'follow')
     rc = sqlite3_exec(_db, sql_indice_usuario, nullptr, nullptr, &err_msg);
+
+    // Si la creación del índice falla, mostramos un error y salimos
     if (rc != SQLITE_OK) {
         std::cerr << "[!] Error al crear indice usuario: " << err_msg << std::endl;
         sqlite3_free(err_msg);
@@ -110,8 +143,39 @@ void Persistencia::crearEsquema() {
 
     // Creamos el índice compuesto por fecha (para el comando 'date')
     rc = sqlite3_exec(_db, sql_indice_fecha, nullptr, nullptr, &err_msg);
+    
+    // Si la creación del índice falla, mostramos un error y salimos
     if (rc != SQLITE_OK) {
         std::cerr << "[!] Error al crear indice fecha: " << err_msg << std::endl;
+        sqlite3_free(err_msg);
+    }
+
+    // === TABLA DEL GRAFO SOCIAL ===
+
+    const char* sql_crear_seguidores = 
+        "CREATE TABLE IF NOT EXISTS seguidores ("
+        "    seguidor    TEXT NOT NULL,"
+        "    seguido     TEXT NOT NULL,"
+        "    PRIMARY KEY (seguidor, seguido)"
+        ");";
+
+    // Índice para consultas inversas: "¿quién me sigue?"
+    const char* sql_indice_seguido = 
+        "CREATE INDEX IF NOT EXISTS idx_seguidores_seguido ON seguidores(seguido);";
+
+    // Creamos la tabla de seguidores
+    rc = sqlite3_exec(_db, sql_crear_seguidores, nullptr, nullptr, &err_msg);
+
+    if (rc != SQLITE_OK) {
+        std::cerr << "[!] Error al crear tabla seguidores: " << err_msg << std::endl;
+        sqlite3_free(err_msg);
+    }
+
+    // Creamos el índice inverso de seguidores
+    rc = sqlite3_exec(_db, sql_indice_seguido, nullptr, nullptr, &err_msg);
+
+    if (rc != SQLITE_OK) {
+        std::cerr << "[!] Error al crear indice seguidores: " << err_msg << std::endl;
         sqlite3_free(err_msg);
     }
 }
@@ -299,3 +363,142 @@ bool Persistencia::verificarIntegridad() {
 
     return integra;
 }
+
+// === GRAFO SOCIAL (Seguidores) ===
+
+/**
+ * @brief Registra una relación de seguimiento en la BBDD.
+ * Usa INSERT OR IGNORE: si la relación ya existe, no hace nada (idempotente).
+ * @param seguidor Nombre del usuario que sigue.
+ * @param seguido Nombre del usuario seguido.
+ */
+void Persistencia::seguir(const std::string& seguidor, const std::string& seguido) {
+
+    if (!_db || !_stmt_seguir) return;
+
+    // Vinculamos los parámetros: seguidor y seguido
+    sqlite3_bind_text(_stmt_seguir, 1, seguidor.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(_stmt_seguir, 2, seguido.c_str(), -1, SQLITE_TRANSIENT);
+
+    // Ejecutamos el INSERT OR IGNORE
+    int rc = sqlite3_step(_stmt_seguir);
+
+    if (rc != SQLITE_DONE) {
+        std::cerr << "[!] Error al registrar seguimiento: " << sqlite3_errmsg(_db) << std::endl;
+    }
+
+    // Reseteamos para reutilizar
+    sqlite3_reset(_stmt_seguir);
+    sqlite3_clear_bindings(_stmt_seguir);
+}
+
+/**
+ * @brief Elimina una relación de seguimiento de la BBDD.
+ * @param seguidor Nombre del usuario que deja de seguir.
+ * @param seguido Nombre del usuario al que se deja de seguir.
+ */
+void Persistencia::dejarDeSeguir(const std::string& seguidor, const std::string& seguido) {
+
+    if (!_db || !_stmt_dejar) return;
+
+    // Vinculamos los parámetros
+    sqlite3_bind_text(_stmt_dejar, 1, seguidor.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(_stmt_dejar, 2, seguido.c_str(), -1, SQLITE_TRANSIENT);
+
+    // Ejecutamos el DELETE
+    int rc = sqlite3_step(_stmt_dejar);
+
+    if (rc != SQLITE_DONE) {
+        std::cerr << "[!] Error al eliminar seguimiento: " << sqlite3_errmsg(_db) << std::endl;
+    }
+
+    // Reseteamos para reutilizar
+    sqlite3_reset(_stmt_dejar);
+    sqlite3_clear_bindings(_stmt_dejar);
+}
+
+/**
+ * @brief Carga la lista de usuarios que sigue un usuario dado.
+ * @param usuario Nombre del usuario cuya lista de seguidos queremos.
+ * @return Lista de nombres de usuarios seguidos.
+ */
+std::list<std::string> Persistencia::cargarSeguidos(const std::string& usuario) {
+
+    std::list<std::string> seguidos;
+
+    if (!_db) return seguidos;
+
+    // Preparamos un SELECT ad-hoc (no merece prepared statement permanente, se usa pocas veces)
+    sqlite3_stmt* stmt = nullptr;
+    int rc = sqlite3_prepare_v2(_db, "SELECT seguido FROM seguidores WHERE seguidor = ?;", -1, &stmt, nullptr);
+
+    if (rc != SQLITE_OK) {
+        std::cerr << "[!] Error al cargar seguidos: " << sqlite3_errmsg(_db) << std::endl;
+        return seguidos;
+    }
+
+    sqlite3_bind_text(stmt, 1, usuario.c_str(), -1, SQLITE_TRANSIENT);
+
+    // Iteramos sobre los resultados
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        const char* nombre = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+        if (nombre) {
+            seguidos.push_back(std::string(nombre));
+        }
+    }
+
+    sqlite3_finalize(stmt);
+    return seguidos;
+}
+
+/**
+ * @brief Carga la lista de seguidores de un usuario dado.
+ * @param usuario Nombre del usuario cuyos seguidores queremos.
+ * @return Lista de nombres de seguidores.
+ */
+std::list<std::string> Persistencia::cargarSeguidores(const std::string& usuario) {
+
+    std::list<std::string> seguidores;
+
+    if (!_db) return seguidores;
+
+    // Usamos el índice idx_seguidores_seguido para esta consulta
+    sqlite3_stmt* stmt = nullptr;
+    int rc = sqlite3_prepare_v2(_db, "SELECT seguidor FROM seguidores WHERE seguido = ?;", -1, &stmt, nullptr);
+
+    if (rc != SQLITE_OK) {
+        std::cerr << "[!] Error al cargar seguidores: " << sqlite3_errmsg(_db) << std::endl;
+        return seguidores;
+    }
+
+    sqlite3_bind_text(stmt, 1, usuario.c_str(), -1, SQLITE_TRANSIENT);
+
+    // Iteramos sobre los resultados
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        const char* nombre = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+        if (nombre) {
+            seguidores.push_back(std::string(nombre));
+        }
+    }
+
+    sqlite3_finalize(stmt);
+    return seguidores;
+}
+
+// === INICIO TESTS ===
+
+void Persistencia::limpiarTodo() {
+    this->ejecutar_comando("DELETE FROM cuacs;");
+}
+
+void Persistencia::ejecutar_comando(const std::string& sql) {
+    char* zErrMsg = nullptr;
+    int rc = sqlite3_exec(_db, sql.c_str(), nullptr, nullptr, &zErrMsg);
+    if (rc != SQLITE_OK) {
+        std::cerr << "[!] Error SQL en ejecutar_comando (" << sql << "): " << zErrMsg << std::endl;
+        sqlite3_free(zErrMsg);
+    }
+}
+
+// === FIN TESTS ===
+

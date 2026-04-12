@@ -38,10 +38,10 @@ class Fecha {
 		// == MÉTODOS ==
 
 		/**
-		 * @brief Capturamos la fecha desde el flujo de entrada.
-		 * Definimos un formato específico para que nuestra lectura sea consistente.
+		 * @brief Implementamos la lectura de la fecha.
+		 * @return true si la lectura fue correcta, false en caso de error.
 		 */
-		void leer_fecha();
+		bool leer_fecha();
 
 		/**
 		 * @brief Mostramos la fecha con un formato amigable para el usuario.
