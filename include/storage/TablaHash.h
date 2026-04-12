@@ -70,13 +70,6 @@ public:
     bool existeUsuario(const std::string& usuario);
 
     /**
-     * @brief [FALLBACK] Búsqueda secuencial global (O(n)). 
-     * @warning Usar solo si no se tiene acceso al DiccionarioCuacs o al Índice de IDs.
-     * @return Puntero al Cuac, o nullptr si no se encuentra.
-     */
-    Cuac* buscarPorId(int id_cuac) const;
-
-    /**
      * @brief Elimina un Cuac específico conociendo a su autor (O(k_usuario)). 
      * Acceso directo al bucket del usuario.
      * @param usuario Nombre del autor del cuac a borrar.
@@ -85,12 +78,6 @@ public:
      */
     bool eliminar(const std::string& usuario, int id_cuac);
 
-    /**
-     * @brief [FALLBACK] Elimina un Cuac específico buscando por todo el sistema (O(n)).
-     * @warning Método extremadamente lento para bases de datos grandes.
-     * @return true si fue eliminado, false si no se encontró.
-     */
-    bool eliminarPorId(int id_cuac);
 
     /**
      * @brief Nos devuelve el número total de elementos insertados.
@@ -98,9 +85,4 @@ public:
     int nElem() const { 
         return _num_elementos; 
     }
-
-    /**
-     * @brief Extrae todos los cuacs almacenados para ser exportados.
-     */
-    std::list<Cuac> exportarCuacs() const;
 };

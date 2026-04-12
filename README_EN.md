@@ -10,9 +10,10 @@ A high-performance data management engine developed in C++. This project simulat
    - **Hash Table with Rehash**: $O(1)$ indexed access. Features automatic dynamic resizing (load factor >0.75) to maintain performance at scale.
    - **AVL Trees**: Guaranteed $O(log n)$ temporal and ID searches via self-balancing tree branches (rotations).
    
-2. **Data Persistence (CSV Engine)**:
-   - Custom serialization engine in `Persistencia.cpp` that tracks system state in `cuacs.dat`.
-   - Automatic background loading on startup and safe-saving on exit or via the `save` command.
+2. **Professional Persistence (SQLite Engine)**:
+   - Incremental persistence engine powered by **SQLite 3**.
+   - Uses **Prepared Statements** to ensure peak performance and security (protecting against _SQL Injection_ attacks).
+   - Automatic cuac's ID counter synchronization across sessions.
 
 3. **Clean Architecture Layout**:
    - Strict separation of concerns (SoC):
@@ -28,13 +29,13 @@ A high-performance data management engine developed in C++. This project simulat
 
 | Command | Action | Complexity |
 |---|---|---|
-| `mcuac` / `pcuac` | Post a new Cuac | $O(1) + O(\log n)$ |
+| `mcuac` / `pcuac` | Post a new Cuac | $O(1) + O(\log n) + O(1)_{\text{db}}$ |
 | `follow <user>` | View all cuacs from a user | $O(1)_{\text{avg}} + O(k)$ |
-| `delete <id>` | Permanently delete a message | $O(\log n)$ |
+| `delete <id>` | Permanently delete a message | $O(\log n) + O(1)_{\text{db}}$ |
 | `last <n>` | View the latest 'n' messages | $O(\log n + k)$ |
 | `date <F1> <F2>` | Messages in a date range | $O(\log n + k)$ |
 | `tag <#hashtag>` | Search via indexed tags | $O(\log n + k)$ |
-| `save` | Force database persistence | $O(n)$ |
+| `check` | Verify database integrity | $O(1)$ |
 | `search <text>` | Search substring in messages | $O(n \cdot m)$ |
 
 With:
@@ -63,11 +64,10 @@ cmake ..
 cmake --build .
 ```
 
-### 💡 Pro Tip
-To test the program with pre-loaded data:
-1. Rename the `cuacs_ejemplo.dat` file to `cuacs.dat` in the root folder.
-2. Run `./cuacker.exe`.
-3. You will see the system automatically restoring the sample welcome messages!
+### Database Management
+- On the first run, the system automatically creates the `cuacs.db` file.
+- Data is saved in real-time without the need for manual commands.
+- You can use the `check` command to run a `PRAGMA integrity_check` on the stored database.
 
 ---
-*Developed for Algorithms and Data Structures.*
+*Developed for **Algorithms and Data Structures** subject.*

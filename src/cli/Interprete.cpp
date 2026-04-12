@@ -17,36 +17,42 @@ Interprete::Interprete(){}
  */
 void Interprete::ejecutarCuacker(){
 
-    // Nombre del fichero de persistencia
-    const std::string f_datos = "cuacs.dat"; 
+    // 1. Abrimos la conexión SQLite (garantiza persistencia durante toda la sesión)
+    Persistencia db("cuacs.db"); // BBDD en el directorio raíz del proyecto
 
-    // Intentamos cargar la base de datos al inicio
-    std::list<Cuac> cargados = Persistencia::cargar(f_datos);
+    // 2. Cargamos los cuacs desde la BBDD (también sincroniza el contador de IDs)
+    std::list<Cuac> cargados = db.cargar(); // Lista de objetos Cuac reconstruidos desde SQLite
 
-    // Cargamos los cuacs en nuestro diccionario
-    _servicio_datos.cargarDesde(cargados);
+    // 3. Recargamos las estructuras en RAM (TablaHash + ArbolAVL + Índices)
+    //  En este punto tenemos que "_persistencia == nullptr", por lo que NO se re-insertan en SQLite
+    for (const Cuac& c : cargados) {
+        _servicio_datos.insertar(c); // Insertamos todos los cuacs en memoria
+    }
 
-    // Si se cargaron cuacs, informamos al usuario
+    // 4. Activamos el auto-guardado; a partir de aquí cada insertar/eliminar escribe a SQLite
+    _servicio_datos.setPersistencia(&db); // Establecemos el puntero a Persistencia
+
+    // 5. Informamos al usuario de los cuacs cargados (si los hay)
     if (!cargados.empty()) {
-        std::cout << ">> Memoria persistente restaurada. " << _servicio_datos.numElem() << " cuacs disponibles." << std::endl;
+        std::cout << "[[i]] Base de datos restaurada. " << _servicio_datos.numElem() << " cuacs disponibles." << std::endl;
     }
 
     std::string comando;
 
-    // Entramos en nuestro bucle de control infinito hasta que se solicite el cierre
+    // Entramos en nuestro bucle de control infinito hasta que se solicite el cierre con 'exit'
     while(std::cin >> comando){
 
         // Gestionamos el cierre de nuestra sesión
         if (comando == "exit"){
 
-            Persistencia::guardar(f_datos, _servicio_datos.exportar());
-            std::cout << "[i] Memoria persistente guardada con exito. Hasta la proxima!" << std::endl;
+            // La conexión SQLite se cierra automáticamente al salir del scope
+            std::cout << "[i] Hasta la proxima!" << std::endl;
             break; // Salimos del bucle y finaliza el programa
 
-        } else if (comando == "save") { 
-            
-            Persistencia::guardar(f_datos, _servicio_datos.exportar());
-            std::cout << "[i] Memoria persistente guardada con exito." << std::endl;
+        } else if (comando == "check") { 
+
+            // Con auto-guardado, 'check' ejecuta una verificación de integridad de la BBDD
+            db.verificarIntegridad();
 
         } else if (comando == "mcuac" || comando == "pcuac"){ // ej. "mcuac john hello world" o "pcuac john 123"
 
@@ -56,7 +62,7 @@ void Interprete::ejecutarCuacker(){
             // Intentamos leer el cuac; si la entrada es correcta, lo incorporamos a nuestro sistema
             if( c.read_cuac(comando) ){
 
-                _servicio_datos.insertar(c); // Insertamos el cuac en nuestro diccionario
+                _servicio_datos.insertar(c); // Inserta en TablaHash+ArbolAVL+Índices Y en SQLite (guardado automático)
 
                 // Informamos al usuario de cuántas publicaciones totales gestionamos ahora
                 std::cout << _servicio_datos.numElem() << " cuac" << std::endl;
@@ -85,7 +91,7 @@ void Interprete::ejecutarCuacker(){
             int id_a_borrar;
             std::cin >> id_a_borrar;
 
-            _servicio_datos.eliminar(id_a_borrar);
+            _servicio_datos.eliminar(id_a_borrar); // Borra de RAM Y de SQLite (guardado automático)
 
         } else if (comando == "date"){ // ej. "date 01/01/2022 31/12/2022"
 
@@ -135,9 +141,9 @@ void Interprete::ejecutarCuacker(){
             std::cout << "  tag <#hashtag>                     - Buscar por hashtag" << std::endl;
             std::cout << "  search <texto>                     - Buscar texto en los cuacs" << std::endl;
             std::cout << "  stats                              - Estadisticas del sistema" << std::endl;
-            std::cout << "  save                               - Guardar el estado actual en disco" << std::endl;
+            std::cout << "  check                              - Verificar integridad de la BBDD" << std::endl;
             std::cout << "  help                               - Mostrar esta ayuda" << std::endl;
-            std::cout << "  exit                               - Guardar y salir de Cuacker" << std::endl;
+            std::cout << "  exit                               - Cerrar Cuacker" << std::endl;
             std::cout << "=============================\n" << std::endl;
 
         } else {

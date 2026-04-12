@@ -38,8 +38,8 @@ class Cuac {
         // Constructor parametrizado para performance tests (ignorar)
         Cuac(std::string usuario, std::string mensaje, Fecha fecha);
 
-        // Constructor para reconstruir el cuac desde fichero (Persistencia de datos)
-        Cuac(std::string usuario, Fecha fecha, std::string tipo_cuac, std::string mensaje, int numero_predefinido);
+        // Constructor para reconstruir el cuac desde la base de datos (con ID específico)
+        Cuac(int id, std::string usuario, Fecha fecha, std::string tipo_cuac, std::string mensaje, int numero_predefinido);
 
         // == MÉTODOS ==
 
@@ -71,4 +71,7 @@ class Cuac {
 
         // Getter del ID del cuac (necesario para el árbol)
         int get_id() const;
+
+        // Sincroniza el contador de IDs con el valor máximo de la base de datos
+        static void inicializar_contador(int valor);
 };

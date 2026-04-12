@@ -21,9 +21,10 @@ Cuac::Cuac()
 Cuac::Cuac(std::string usuario, std::string mensaje, Fecha fecha) 
     : _numero_predefinido(0), _mensaje(mensaje), _usuario(usuario), _tipo_cuac("mcuac"), _fecha(fecha), _id(_contador_id++) {}
 
-// Constructor para reconstruir el cuac desde fichero (Persistencia de datos)
-Cuac::Cuac(std::string usuario, Fecha fecha, std::string tipo_cuac, std::string mensaje, int numero_predefinido) 
-    : _numero_predefinido(numero_predefinido), _mensaje(mensaje), _usuario(usuario), _tipo_cuac(tipo_cuac), _fecha(fecha), _id(_contador_id++) {}
+// Constructor para reconstruir el cuac desde la base de datos (con ID específico)
+// NO incrementa el contador estático porque el ID viene de la BBDD
+Cuac::Cuac(int id, std::string usuario, Fecha fecha, std::string tipo_cuac, std::string mensaje, int numero_predefinido) 
+    : _numero_predefinido(numero_predefinido), _mensaje(mensaje), _usuario(usuario), _tipo_cuac(tipo_cuac), _fecha(fecha), _id(id) {}
 
 // == MÉTODOS ==
 
@@ -132,4 +133,13 @@ int Cuac::get_numero_predefinido() const {
  */
 int Cuac::get_id() const {
     return _id;
+}
+
+/**
+ * @brief Sincroniza el contador de IDs con el valor máximo almacenado en la base de datos.
+ * Se llama al arrancar la aplicación para que los nuevos cuacs continúen la secuencia.
+ * @param valor El nuevo valor del contador (típicamente MAX(id) + 1).
+ */
+void Cuac::inicializar_contador(int valor) {
+    _contador_id = valor;
 }

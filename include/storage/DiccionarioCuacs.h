@@ -15,6 +15,21 @@
 #include <list>
 #include <unordered_map>
 
+/*
+ * Forward declaration para evitar dependencia circular,
+ * ya que Persistencia necesita saber qué es un Cuac (porque los almacena), y Cuac necesita saber qué es Persistencia.
+
+ * Esto es necesario para que el compilador sepa que Persistencia existe, aunque no sepa su estructura completa.
+ * De esta forma, podemos usar punteros a Persistencia en DiccionarioCuacs (reservar 8 bytes) sin necesidad de incluir el archivo completo.
+ */
+class Persistencia; 
+
+/**
+ * @brief Clase controladora principal: el Diccionario de Cuacs.
+ * Orquesta el uso de las 2 estructuras de datos principales
+ * (Tabla Hash y Árbol AVL) para gestionar las publicaciones de la red social.
+ */
+
 class DiccionarioCuacs {
 
 private:
@@ -42,9 +57,15 @@ private:
   std::unordered_map<int, Cuac*> _indice_ids;
 
   /**
-   * @brief Contador de usuarios únicos registrados en el sistema.
+   * @brief Contador de usuarios únicos registrados en la red social.
    */
   int _num_usuarios_unicos;
+
+  /**
+   * @brief Puntero a la capa de persistencia SQLite (inyectado externamente).
+   * Se mantiene en 'nullptr' durante la carga inicial para evitar INSERTs redundantes.
+   */
+  Persistencia* _persistencia;
 
   /**
    * @brief Extraemos los hashtags del texto de un cuac.
@@ -113,16 +134,9 @@ public:
   int numElem() const { return _tabla_usuarios.nElem(); }
 
   /**
-   * @brief Extrae todos los cuacs para exportarlos a la persistencia.
-   * @return Lista de cuacs.
+   * @brief Inyecta la referencia a la capa de Persistencia.
+   * Se llama DESPUÉS de cargar los datos iniciales para activar el auto-guardado.
+   * @param p Puntero a la instancia de Persistencia (no es dueño de la instancia).
    */
-  // NOTA: Esta función Inline es llamada por la capa de persistencia.
-  std::list<Cuac> exportar() const { return _tabla_usuarios.exportarCuacs(); }
-
-  /**
-   * @brief Restaura el sistema insertando una lista de cuacs guardada.
-   * @param cuacs Lista de cuacs a insertar (const reference).
-   */
-  // NOTA: Esta función es llamada por la capa de persistencia.
-  void cargarDesde(const std::list<Cuac>& cuacs);
+  void setPersistencia(Persistencia* p);
 };

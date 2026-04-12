@@ -185,24 +185,6 @@ bool TablaHash::existeUsuario(const std::string& usuario) {
     return false; // Si no lo encontramos, devolvemos false
 }
 
-/**
- * @brief [FALLBACK] Busca un Cuac específico por su identificador único.
- * Escanea la tabla entera (O(n)) ya que el Hash es por usuario, no por ID.
- * @param id_cuac ID del Cuac a buscar.
- * @return Puntero al objeto Cuac si se encuentra, 'nullptr' en caso contrario.
- */
-Cuac* TablaHash::buscarPorId(int id_cuac) const {
-    for (int i = 0; i < _num_buckets; ++i) {
-        for (const Par& par : _tabla_buckets[i]) {
-            for (const Cuac& c : par._lista_cuacs) {
-                if (c.get_id() == id_cuac) { // Si encontramos el Cuac
-                    return const_cast<Cuac*>(&c); // Devolvemos su dirección
-                }
-            }
-        }
-    }
-    return nullptr; // Si no lo encontramos, devolvemos nullptr
-}
 
 /**
  * @brief Elimina un Cuac específico conociendo a su autor (O(k_usuario))
@@ -237,55 +219,6 @@ bool TablaHash::eliminar(const std::string& usuario, int id_cuac) {
     return false; // Si no lo encontramos, devolvemos false
 }
 
-/**
- * @brief [FALLBACK] Elimina un Cuac específico buscando por todo el sistema (O(n)).
- * @warning Método extremadamente lento para bases de datos grandes.
- * @return true si fue eliminado, false si no se encontró.
- */
-bool TablaHash::eliminarPorId(int id_cuac) {
-    for (int i = 0; i < _num_buckets; ++i) {
-        for (Par& par : _tabla_buckets[i]) {
-            // Recorremos la lista de cuacs del usuario (O(k))
-            for (auto it = par._lista_cuacs.begin(); it != par._lista_cuacs.end(); ++it) {
-                // Si encontramos el Cuac
-                if (it->get_id() == id_cuac) { 
-                    par._lista_cuacs.erase(it); // Eliminamos el Cuac
-                    _num_elementos--; // Decrementamos el contador de elementos
-
-                    // Si la lista del usuario queda vacía, podríamos eliminar el 'Par',
-                    // pero para simplificar lo dejamos (simplemente no tendrá cuacs).
-
-                    return true;
-                }
-            }
-        }
-    }
-    return false; // Si no lo encontramos, devolvemos false
-}
-
-/**
- * @brief Extrae todos los cuacs almacenados para ser exportados a fichero.
- * @return Una lista con todos los cuacs del sistema.
- */
-std::list<Cuac> TablaHash::exportarCuacs() const {
-
-    std::list<Cuac> todos; // Lista donde guardaremos todos los cuacs
-
-    // == Triple Recorrido (O(n)) ==
-
-    // Recorremos la tabla de buckets
-    for (int i = 0; i < _num_buckets; ++i) {
-        // Recorremos la lista de pares en cada bucket
-        for (const Par& par : _tabla_buckets[i]) {
-            // Recorremos la lista de cuacs en cada par
-            for (const Cuac& c : par._lista_cuacs) {
-                todos.push_back(c); // Añadimos el cuac a la lista
-            }
-        }
-    }
-
-    return todos; // Devolvemos la lista con todos los cuacs
-}
 
 /**
  * @brief Función de rehash dinámico

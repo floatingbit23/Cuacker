@@ -2,7 +2,8 @@
 #include <list>
 #include <string>
 #include <sstream>
-#include "DiccionarioCuacs.h"
+#include "DiccionarioCuacs.h" 
+#include "Persistencia.h" // Necesario para poder usar el puntero a Persistencia y llamar a sus métodos (insertar, eliminar, etc.)
 
 /**
  * @brief Constructor de nuestra clase Diccionario
@@ -10,6 +11,7 @@
  */
 DiccionarioCuacs::DiccionarioCuacs(){
     _num_usuarios_unicos = 0; // Inicializamos el contador de usuarios únicos a cero
+    _persistencia = nullptr;  // Sin persistencia hasta que se inyecte (evita INSERTs durante la carga)
 }
 
 /**
@@ -76,6 +78,13 @@ void DiccionarioCuacs::insertar(const Cuac &nuevo){
 
         // 4. Registramos el ID en el índice secundario para acceso instantáneo
         _indice_ids[pt->get_id()] = pt;
+
+        // === GUARDADO EN BASE DE DATOS ===
+
+        // 5. Auto-guardado: si la persistencia está activa (no es nullptr), guardamos en SQLite inmediatamente
+        if (_persistencia != nullptr) {
+            _persistencia->insertar(*pt);
+        }
     }
 }
 
@@ -88,7 +97,7 @@ void DiccionarioCuacs::eliminar(int id_cuac) {
     auto it_id = _indice_ids.find(id_cuac);
     
     if (it_id == _indice_ids.end()) {
-        std::cout << "[!] Error: No se ha encontrado el Cuac con ID " << id_cuac << std::endl;
+        std::cout << "[!] Error: No se ha encontrado el Cuac con ID #" << id_cuac << std::endl;
         return;
     }
 
@@ -106,7 +115,14 @@ void DiccionarioCuacs::eliminar(int id_cuac) {
     // 4. Borramos del índice de IDs (O(1))
     _indice_ids.erase(it_id);
 
-    std::cout << "[i] Cuac #" << id_cuac << " eliminado permanentemente de todas las estructuras." << std::endl;
+    // === BORRADO EN BASE DE DATOS ===
+
+    // 5. Auto-guardado: si la persistencia está activa (no es nullptr), eliminamos de SQLite inmediatamente
+    if (_persistencia != nullptr) {
+        _persistencia->eliminar(id_cuac);
+    }
+
+    std::cout << "[i] Cuac #" << id_cuac << " eliminado permanentemente del sistema." << std::endl;
 }
 
 
@@ -233,11 +249,10 @@ void DiccionarioCuacs::stats() {
 }
 
 /**
- * @brief Restaura el sistema re-insertando los cuacs pasados por parámetro.
- * @param cuacs Lista de cuacs a insertar (const reference).
+ * @brief Setter: Inyecta la referencia a la capa de persistencia SQLite.
+ * Se llama DESPUÉS de cargar los datos iniciales para activar el auto-guardado.
+ * @param p Puntero a la instancia de Persistencia.
  */
-void DiccionarioCuacs::cargarDesde(const std::list<Cuac>& cuacs) {
-    for (const Cuac& c : cuacs) {
-        insertar(c);
-    }
+void DiccionarioCuacs::setPersistencia(Persistencia* p) {
+    _persistencia = p;
 }

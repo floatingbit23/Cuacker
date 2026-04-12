@@ -10,9 +10,10 @@ Motor de gestión de datos de alto rendimiento desarrollado en C++. El proyecto 
    - **Tabla Hash con Rehash**: Acceso indexado $O(1)$. Implementa redimensionamiento dinámico automático (factor de carga >0.75) para garantizar que el rendimiento no degrade con millones de usuarios.
    - **Árboles AVL**: Búsquedas temporales y por ID garantizadas en $O(log n)$ mediante balanceo automático de ramas (rotaciones).
    
-2. **Persistencia de Datos (CSV Engine)**:
-   - Motor de serialización propio en `Persistencia.cpp` que guarda el estado del sistema en `cuacs.dat`.
-   - Carga automática al inicio y guardado preventivo al salir o mediante comando `save`.
+2. **Persistencia Profesional (SQLite Engine)**:
+   - Motor de persistencia incremental basado en **SQLite 3**.
+   - Uso de **Prepared Statements** para garantizar máximo rendimiento y seguridad (evitando ataques de inyección SQL).
+   - Sincronización automática del contador de IDs de los cuacs entre sesiones.
 
 3. **Arquitectura Limpia**:
    - Separación estricta de responsabilidades:
@@ -28,14 +29,14 @@ Motor de gestión de datos de alto rendimiento desarrollado en C++. El proyecto 
 
 | Comando | Acción | Complejidad |
 |---|---|---|
-| `mcuac` / `pcuac` | Publicar un nuevo Cuac | $O(1) + O(\log n)$ |
+| `mcuac` / `pcuac` | Publicar un nuevo Cuac | $O(1) + O(\log n) + O(1)_{\text{db}}$ |
 | `follow <usuario>` | Ver todos los cuacs de un usuario | $O(1)_{\text{avg}} + O(k)$ |
-| `delete <id>` | Eliminar un mensaje permanentemente | $O(\log n)$ |
+| `delete <id>` | Eliminar un mensaje permanentemente | $O(\log n) + O(1)_{\text{db}}$ |
 | `last <n>` | Ver los últimos 'n' mensajes del sistema | $O(\log n + k)$ |
 | `date <F1> <F2>` | Ver los ensajes en un rango de fechas | $O(\log n + k)$ |
 | `tag <#hashtag>` | Búsqueda por etiquetas indexadas | $O(\log n + k)$ |
-| `save` | Forzar guardado en base de datos | $O(n)$ |
-| `search <texto>` | Búsqueda de subcadena en mensajes | $O(n \cdot m)$ |
+| `check` | Verificar integridad de la base de datos | $O(1)$ |
+| `search <texto>` | Búsqueda de texto (subcadena) en mensajes | $O(n \cdot m)$ |
 
 Siendo:
 - **$n$**: Número total de Cuacs (mensajes) almacenados en el sistema.
@@ -63,11 +64,10 @@ cmake ..
 cmake --build .
 ```
 
-### Tip de Ejemplo
-Para probar el programa con datos precargados:
-1. Renombra el archivo `cuacs_ejemplo.dat` a `cuacs.dat` en la carpeta raíz.
-2. Ejecuta `./cuacker.exe`.
-3. ¡Verás que el sistema restaura automáticamente 5 mensajes de bienvenida!
+### Gestión de la Base de Datos
+- Al primer arranque, el sistema crea automáticamente el archivo `cuacs.db`.
+- Los datos se guardan en tiempo real sin necesidad de comandos manuales.
+- Puedes usar el comando `check` para ejecutar un `PRAGMA integrity_check` sobre la base de datos almacenada.
 
 ---
-*Desarrollado para la asignatura de Algoritmos y Estructuras de Datos.*
+*Desarrollado para la asignatura de **Algoritmos y Estructuras de Datos**.*
