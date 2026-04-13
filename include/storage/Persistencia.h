@@ -1,10 +1,18 @@
 #pragma once
 #include <string>
 #include <list>
+#include <memory>
 #include "Cuac.h"
 
-struct sqlite3;       // Forward declaration (evita incluir sqlite3.h en cabeceras públicas)
+// Forward declarations para SQLite
+struct sqlite3;
 struct sqlite3_stmt;
+
+/**
+ * @brief Deleters personalizados para que std::unique_ptr sepa cómo cerrar recursos de SQLite automáticamente.
+ */
+struct SQLiteDeleter { void operator()(sqlite3* db) const; };
+struct StmtDeleter   { void operator()(sqlite3_stmt* stmt) const; };
 
 /**
  * @file Persistencia.h
@@ -15,18 +23,12 @@ struct sqlite3_stmt;
 class Persistencia {
 
 private:
-    sqlite3* _db;                    // Conexión activa a la BBDD
+    std::unique_ptr<sqlite3, SQLiteDeleter> _db;           // Conexión segura (auto-cierre)
 
-    sqlite3_stmt* _stmt_insertar;    // Prepared statement reutilizable para INSERTs de cuacs
-    sqlite3_stmt* _stmt_eliminar;    // Prepared statement reutilizable para DELETEs de cuacs
-
-    sqlite3_stmt* _stmt_seguir;      // Prepared statement para INSERT OR IGNORE en seguidores
-    sqlite3_stmt* _stmt_dejar;       // Prepared statement para DELETE de seguidores
-
-    /*
-    Los PREPARED STATEMENTS son sentencias SQL que se precompilan
-    y se reutilizan, lo que mejora el rendimiento.  
-    */
+    std::unique_ptr<sqlite3_stmt, StmtDeleter> _stmt_insertar; // Prepared statements con auto-finalize
+    std::unique_ptr<sqlite3_stmt, StmtDeleter> _stmt_eliminar;
+    std::unique_ptr<sqlite3_stmt, StmtDeleter> _stmt_seguir;
+    std::unique_ptr<sqlite3_stmt, StmtDeleter> _stmt_dejar;
 
     std::string _ruta_db;            // Ruta al fichero .db
 
