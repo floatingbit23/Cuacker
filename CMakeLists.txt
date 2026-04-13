@@ -14,13 +14,19 @@ include_directories(include include/model include/storage include/cli lib)
 file(GLOB_RECURSE SOURCES src/*.cpp)
 file(GLOB_RECURSE HEADERS include/*.h)
 
-# Compilamos SQLite como una librería estática (C puro, sin warnings de C++)
+# Compilamos SQLite como una librería estática (C puro)
 add_library(sqlite3 STATIC lib/sqlite3.c)
+
+# Configuraciones base de SQLite para máxima portabilidad
 target_compile_definitions(sqlite3 PRIVATE 
-    SQLITE_THREADSAFE=0           # Single-threaded (no necesitamos concurrencia)
-    SQLITE_OMIT_LOAD_EXTENSION    # No necesitamos extensiones dinámicas
-    _WIN32_WINNT=0x0600           # Mínimo Windows Vista (compatibilidad con MinGW antiguo)
+    SQLITE_THREADSAFE=0           # Mejor rendimiento para un solo hilo
+    SQLITE_OMIT_LOAD_EXTENSION    # Más seguro al no permitir cargar librerías externas
 )
+
+# Configuraciones específicas para Windows (necesarias para MinGW)
+if(WIN32)
+    target_compile_definitions(sqlite3 PRIVATE _WIN32_WINNT=0x0600) # Compatible con Windows Vista+
+endif()
 if(MSVC)
     target_compile_options(sqlite3 PRIVATE /W0)  # Silenciamos warnings de sqlite3.c en MSVC
 else()

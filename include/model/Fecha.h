@@ -51,14 +51,15 @@ class Fecha {
 
 		/**
 		 * @brief Realizamos comparaciones cronológicas mediante sobrecarga de operadores.
-		 * Pasamos las fechas como parámetros constantes para evitar copias innecesarias, ya que no vamos a modificarlas.
+		 * Pasamos por valor (copia) porque el objeto es pequeño (24 bytes) y es más eficiente
+		 * para la CPU que seguir el puntero de una referencia.
 		 */
-		bool operator<(const Fecha& otra_fecha) const;
-		bool operator==(const Fecha& otra_fecha) const;
-		bool operator>(const Fecha& otra_fecha) const;
-		bool operator<=(const Fecha& otra_fecha) const;
-		bool operator>=(const Fecha& otra_fecha) const;
-		bool operator!=(const Fecha& otra_fecha) const;
+		bool operator<(Fecha otra_fecha) const;
+		bool operator==(Fecha otra_fecha) const;
+		bool operator>(Fecha otra_fecha) const;
+		bool operator<=(Fecha otra_fecha) const;
+		bool operator>=(Fecha otra_fecha) const;
+		bool operator!=(Fecha otra_fecha) const;
 
 		/**
 		 * @brief Función amiga de la clase Fecha (porque la función operator<< debe poder acceder a los atributos privados de dicha clase) 
