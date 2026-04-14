@@ -3,8 +3,8 @@ cmake_minimum_required(VERSION 3.10)
 # Nombre de tu proyecto y lenguaje
 project(Cuacker LANGUAGES C CXX)
 
-# Exigimos el estándar C++11 (o superior para las listas de inicialización y otras mejoras)
-set(CMAKE_CXX_STANDARD 11)
+# Exigimos el estándar C++14 para poder usar std::make_unique y otras mejoras modernas
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Añadimos los directorios de cabeceras para que los #include funcionen sin modificar la ruta relativa en cada fichero

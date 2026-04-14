@@ -8,26 +8,31 @@
  */
 #include <list>
 #include <unordered_set>
+#include <memory>
 #include "Cuac.h"
+
+using std::list;
+using std::unordered_set;
+using std::unique_ptr;
+using std::make_unique;
 
 /**
  * @brief Clase Nodo
  * Representa cada punto de unión en nuestro árbol. 
- * En nuestro diseño, cada nodo agrupa Cuacs que tienen exactamente la misma fecha.
  */
 class Nodo {
     friend class Arbol_AVL;
 
 private:
-    // Punteros a nuestras ramas izquierda y derecha
-    Nodo *_hijoIzquierdo;
-    Nodo *_hijoDerecho;
+    // Punteros inteligentes a nuestras ramas izquierda y derecha (dueños de la memoria)
+    unique_ptr<Nodo> _hijoIzquierdo;
+    unique_ptr<Nodo> _hijoDerecho;
 
     // Almacenamos la altura para balancear el árbol eficientemente
     int _altura;
 
     // Lista de punteros a cuacs con la misma fecha
-    std::list<Cuac*> _listaCuacs;
+    list<Cuac*> _listaCuacs;
 
     // La fecha que identifica a este nodo
     Fecha _fecha;
@@ -39,18 +44,15 @@ public:
     Nodo(Cuac* nuevo_cuac) {
         _fecha = nuevo_cuac->get_fecha();
         _listaCuacs.push_back(nuevo_cuac);
-        _hijoIzquierdo = nullptr;
-        _hijoDerecho = nullptr;
+        // Los unique_ptr (_hijoIzquierdo, _hijoDerecho) se inicializan solos a 'nullptr'
         _altura = 1; // Inicializamos la altura como 1 para nuevos nodos
     }
 
     /**
-     * @brief Destructor recursivo para limpiar nuestro árbol de la memoria.
+     * @brief El destructor manual ya no es necesario.
+     * Al usar unique_ptr, la limpieza es automática y segura.
      */
-    ~Nodo() {
-        delete _hijoIzquierdo;
-        delete _hijoDerecho;
-    }
+    ~Nodo() = default;
 };
 
 /**
@@ -61,28 +63,34 @@ class Arbol_AVL {
 
 
 private:
-    Nodo* _raiz; // El punto de inicio de nuestro árbol
+    // El punto de inicio de nuestro árbol (dueño de la jerarquía)
+    unique_ptr<Nodo> _raiz; 
 
     // Métodos internos para gestionar el balanceo y la altura
+    // Usamos punteros crudos para consulta (ya que no son dueños)
     int obtener_altura(Nodo* nodo_consulta);
     int obtener_balanceo(Nodo* nodo_consulta);
 
     // Implementamos los giros necesarios para mantener el equilibrio del AVL
-    Nodo* giro_derecha(Nodo* nodo_raiz_local);
-    Nodo* giro_izquierda(Nodo* nodo_raiz_local);
+    // Estos métodos transfieren la propiedad del nodo raíz local
+    unique_ptr<Nodo> giro_derecha(unique_ptr<Nodo> nodo_raiz_local);
+    unique_ptr<Nodo> giro_izquierda(unique_ptr<Nodo> nodo_raiz_local);
 
     // Funciones recursivas de inserción y búsqueda
-    Nodo* insertar_recursivo(Nodo* nodo_actual, Cuac* nuevo_cuac);
+    // La inserción y eliminación transfieren propiedad (sink/source)
+    unique_ptr<Nodo> insertar_recursivo(unique_ptr<Nodo> nodo_actual, Cuac* nuevo_cuac);
+    
+    // Las búsquedas solo consultan, por lo que usamos punteros crudos
     void buscar_ultimos_recursivo(Nodo* nodo_actual, int& cuacs_restantes, int& contador_posicion);
     void buscar_por_rango_recursivo(Nodo* nodo_actual, const Fecha& fecha_inicio, const Fecha& fecha_fin, int& contador_total);
     void buscar_texto_recursivo(Nodo* nodo_actual, const std::string& texto, int& contador_total);
 
     /** @brief Traversal filtrado (derecha→raíz→izquierda) para timeline personalizado. */
     void buscar_ultimos_filtrado_recursivo(Nodo* nodo_actual, int& cuacs_restantes,
-        int& contador_posicion, const std::unordered_set<std::string>& usuarios_permitidos);
+        int& contador_posicion, const unordered_set<std::string>& usuarios_permitidos);
 
     // Funciones de eliminación
-    Nodo* eliminar_recursivo(Nodo* nodo_actual, int id_cuac, const Fecha& fecha_cuac);
+    unique_ptr<Nodo> eliminar_recursivo(unique_ptr<Nodo> nodo_actual, int id_cuac, const Fecha& fecha_cuac);
     Nodo* obtener_nodo_minimo(Nodo* nodo_actual);
 
 public:
@@ -114,7 +122,6 @@ public:
 
     /**
      * @brief Elimina un cuac por ID y fecha.
-     * @return void
      */
     void eliminar(int id_cuac, const Fecha& fecha_cuac);
 
@@ -124,5 +131,5 @@ public:
      * @param cantidad_a_mostrar Número de cuacs a mostrar.
      * @param usuarios_permitidos Set de nombres de usuarios cuyos cuacs se incluyen.
      */
-    void lastFiltrado(int cantidad_a_mostrar, const std::unordered_set<std::string>& usuarios_permitidos);
+    void lastFiltrado(int cantidad_a_mostrar, const unordered_set<std::string>& usuarios_permitidos);
 };
