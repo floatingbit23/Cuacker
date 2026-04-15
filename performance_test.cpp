@@ -33,10 +33,15 @@ int main() {
     
     // Preparar datos en memoria
     std::vector<Cuac*> cuacs_generados;
+    std::vector<std::string> usuarios_test; // Guardamos los usuarios para buscarlos luego
     for(int i=0; i<NUM_ELEMENTOS; ++i) {
+        std::string usr = generarUsuarioAleatorio();
+        usuarios_test.push_back(usr);
         Fecha f(10, 4, 2026, 12, 0, i % 60);
-        cuacs_generados.push_back(new Cuac(generarUsuarioAleatorio(), "Prueba de rendimiento #" + std::to_string(i), f));
+        cuacs_generados.push_back(new Cuac(usr, "Prueba de rendimiento #" + std::to_string(i), f));
     }
+
+    int id_a_borrar = cuacs_generados[NUM_ELEMENTOS/2]->get_id();
 
     // --- TEST DE INSERSIÓN MASIVA CON TRANSACCIÓN ---
     std::cout << "[1/4] Test de Insercion Masiva (RAM + SQLite Transaction)..." << std::endl;
@@ -49,8 +54,9 @@ int main() {
     persistencia.ejecutar_comando("BEGIN TRANSACTION;");
 
     for (int i = 0; i < NUM_ELEMENTOS; ++i) {
-        diccionario.insertar(*(cuacs_generados[i]));
-        if (i % 50000 == 0 && i > 0) std::cout << "   ... " << i << " insertados" << std::endl;
+        // Usamos std::move para que el test aproveche las optimizaciones de movimiento que hemos creado
+        diccionario.insertar(std::move(*(cuacs_generados[i])));
+        if (i % 50000 == 0 && i > 0) std::cout << "   ... " << i << " insertados" << "\n";
     }
 
     // Cerramos transacción: aquí es donde se vuelca todo a disco de golpe
@@ -65,8 +71,8 @@ int main() {
     std::cout << "[2/4] Test de Recuperacion por Usuario (Tabla Hash)..." << std::endl;
     start = std::chrono::high_resolution_clock::now();
     for(int i=0; i<100; ++i) {
-        // Buscamos un usuario que sabemos que existe
-        diccionario.follow(cuacs_generados[i]->get_usuario());
+        // Buscamos un usuario que sabemos que existe (usando el vector preservado)
+        diccionario.follow(usuarios_test[i]);
     }
     end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = end - start;
@@ -84,7 +90,6 @@ int main() {
 
     // --- TEST DE BORRADO OPTIMIZADO O(log n) ---
     std::cout << "[4/4] Test de Borrado por ID (Índice Secundario)..." << std::endl;
-    int id_a_borrar = cuacs_generados[NUM_ELEMENTOS/2]->get_id();
     
     start = std::chrono::high_resolution_clock::now();
     diccionario.eliminar(id_a_borrar);

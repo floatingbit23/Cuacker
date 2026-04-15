@@ -47,7 +47,7 @@ int TablaHash::funcionHash(const std::string& clave)
  * @param c El objeto Cuac que queremos almacenar.
  * @return La dirección de memoria donde ha quedado guardado el cuac insertado.
  */
-Cuac* TablaHash::insertar(const Cuac& c, bool* esNuevo)
+Cuac* TablaHash::insertar(Cuac c, bool* esNuevo)
 {
     std::string usuario = c.get_usuario();
     int h = funcionHash(usuario); // Calculamos en qué "cubo/bucket" debe estar
@@ -100,7 +100,8 @@ Cuac* TablaHash::insertar(const Cuac& c, bool* esNuevo)
             } 
 
             // Insertamos en la posición que hemos determinado y devolvemos su dirección
-            std::list<Cuac>::iterator dir_cuac = par._lista_cuacs.insert(itera_Cuac, c);
+            // Usamos std::move(c) para transferir la propiedad del objeto a la lista
+            std::list<Cuac>::iterator dir_cuac = par._lista_cuacs.insert(itera_Cuac, std::move(c));
             _num_elementos++; // Incrementamos el contador de elementos
 
             return &(*dir_cuac); 
@@ -111,10 +112,10 @@ Cuac* TablaHash::insertar(const Cuac& c, bool* esNuevo)
 
     // == CASO DE USUARIO NUEVO EN EL SISTEMA==
 
-    Par nuevo; // Creamos un nuevo par
-    nuevo._nombre_usuario = usuario; // Le asignamos el nombre del usuario
-    nuevo._lista_cuacs.push_back(c); // Le asignamos el cuac (push_back inserta al final)
-    _tabla_buckets[h].push_back(nuevo); // Lo insertamos en la tabla (al final)
+    Par nuevo_par; // Creamos un nuevo par
+    nuevo_par._nombre_usuario = usuario; // Le asignamos el nombre del usuario
+    nuevo_par._lista_cuacs.push_back(std::move(c)); // Transferimos el cuac al nuevo par
+    _tabla_buckets[h].push_back(std::move(nuevo_par)); // Lo insertamos en la tabla
     
     if (esNuevo) *esNuevo = true; // Si es un usuario nuevo, lo marcamos como tal
 

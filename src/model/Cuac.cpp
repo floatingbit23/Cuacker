@@ -15,16 +15,16 @@ int Cuac::_contador_id = 1;
  * e incrementamos dicho contador para la siguiente instancia.
  */
 Cuac::Cuac() 
-    : _numero_predefinido(0), _mensaje(""), _usuario(""), _tipo_cuac(""), _id(_contador_id++) {}
+    : _mensaje(""), _usuario(""), _tipo_cuac(""), _numero_predefinido(0), _id(_contador_id++), _fecha() {}
 
 // Constructor parametrizado para performance tests (ignorar)
 Cuac::Cuac(std::string usuario, std::string mensaje, Fecha fecha) 
-    : _numero_predefinido(0), _mensaje(mensaje), _usuario(usuario), _tipo_cuac("mcuac"), _fecha(fecha), _id(_contador_id++) {}
+    : _mensaje(mensaje), _usuario(usuario), _tipo_cuac("mcuac"), _numero_predefinido(0), _id(_contador_id++), _fecha(fecha) {}
 
 // Constructor para reconstruir el cuac desde la base de datos (con ID específico)
 // NO incrementa el contador estático porque el ID viene de la BBDD
 Cuac::Cuac(int id, std::string usuario, Fecha fecha, std::string tipo_cuac, std::string mensaje, int numero_predefinido) 
-    : _numero_predefinido(numero_predefinido), _mensaje(mensaje), _usuario(usuario), _tipo_cuac(tipo_cuac), _fecha(fecha), _id(id) {}
+    : _mensaje(mensaje), _usuario(usuario), _tipo_cuac(tipo_cuac), _numero_predefinido(numero_predefinido), _id(id), _fecha(fecha) {}
 
 // == MÉTODOS ==
 
@@ -54,7 +54,7 @@ bool Cuac::read_cuac(std::string cuac_type_read){
         std::string basura; // Variable auxiliar para consumir el resto de la línea "mala"
         std::getline(std::cin, basura); 
 
-        std::cerr << "[!] Error: Formato de fecha incompleto. Usa: DD/MM/AAAA HH:MM:SS" << std::endl;
+        std::cerr << "[!] Error: Formato de fecha incompleto. Usa: DD/MM/AAAA HH:MM:SS\n";
 
         return false; // Devolvemos false para indicar que la lectura falló
     }
@@ -75,7 +75,7 @@ bool Cuac::read_cuac(std::string cuac_type_read){
             std::cin.clear();
             std::string basura;
             std::getline(std::cin, basura);
-            std::cerr << "[!] Error: Se esperaba un numero para el mensaje predefinido." << std::endl;
+            std::cerr << "[!] Error: Se esperaba un numero para el mensaje predefinido.\n";
             return false;
         }
         std::cin.ignore();

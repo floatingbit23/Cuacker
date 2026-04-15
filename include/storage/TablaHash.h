@@ -49,11 +49,11 @@ public:
 
     /**
      * @brief Insertamos un cuac y devolvemos su dirección de memoria permanente.
-     * @param c El objeto Cuac que queremos almacenar (pasado por referencia constante para evitar copias).
+     * @param c El objeto Cuac que queremos almacenar (pasado por VALOR para permitir std::move).
      * @param esNuevo (Opcional) Se pondrá a true si el usuario no existía previamente.
      * @return La dirección de memoria donde ha quedado guardado el cuac.
      */
-    Cuac* insertar(const Cuac& c, bool* esNuevo = nullptr);
+    Cuac* insertar(Cuac c, bool* esNuevo = nullptr);
 
     /**
      * @brief Recuperamos la lista completa de cuacs de un usuario específico (referencia).

@@ -6,6 +6,7 @@
  * El árbol nos permite mantener todos los mensajes ordenados por fecha y hora
  * de forma balanceada, garantizando tiempos de acceso logarítmicos.
  */
+
 #include <list>
 #include <unordered_set>
 #include <memory>
@@ -24,29 +25,31 @@ class Nodo {
     friend class Arbol_AVL;
 
 private:
-    // Punteros inteligentes a nuestras ramas izquierda y derecha (dueños de la memoria)
-    unique_ptr<Nodo> _hijoIzquierdo;
-    unique_ptr<Nodo> _hijoDerecho;
+    // Punteros inteligentes a nuestras ramas izquierda y derecha (dueños de la memoria) 
+    unique_ptr<Nodo> _hijoIzquierdo; // 8 bytes
+    unique_ptr<Nodo> _hijoDerecho;   // 8 bytes
 
-    // Almacenamos la altura para balancear el árbol eficientemente
-    int _altura;
-
-    // Lista de punteros a cuacs con la misma fecha
-    list<Cuac*> _listaCuacs;
+    // Lista de punteros a cuacs con la misma fecha 
+    list<Cuac*> _listaCuacs; // 8 bytes (punteros internos)
 
     // La fecha que identifica a este nodo
-    Fecha _fecha;
+    Fecha _fecha; // 24 bytes (4-aligned)
+
+    // Almacenamos la altura para balancear el árbol eficientemente
+    int _altura; // 4 bytes (4-aligned)
+
+    /* Padding total inevitable: 4 bytes*/
 
 public:
     /**
      * @brief Creamos un nuevo nodo a partir de un cuac inicial.
+     * @param nuevo_cuac Puntero al cuac que se va a insertar.
+     * @note Se inicializan los punteros a nullptr, la lista con el cuac, la fecha y la altura en 1,
+     * usando lista de inicialización de miembros.
      */
-    Nodo(Cuac* nuevo_cuac) {
-        _fecha = nuevo_cuac->get_fecha();
-        _listaCuacs.push_back(nuevo_cuac);
-        // Los unique_ptr (_hijoIzquierdo, _hijoDerecho) se inicializan solos a 'nullptr'
-        _altura = 1; // Inicializamos la altura como 1 para nuevos nodos
-    }
+    Nodo(Cuac* nuevo_cuac) 
+        : _hijoIzquierdo(nullptr), _hijoDerecho(nullptr), _listaCuacs({nuevo_cuac}), 
+          _fecha(nuevo_cuac->get_fecha()), _altura(1) {}
 
     /**
      * @brief El destructor manual ya no es necesario.

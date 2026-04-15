@@ -47,19 +47,16 @@ void DiccionarioCuacs::extraer_hashtags(const std::string& texto, Cuac* cuac_ptr
 
 /**
  * @brief Implementamos el proceso de inserción dual.
- * Primero guardamos el cuac en nuestra Tabla Hash (que es la dueña del objeto)
- * y usamos el puntero devuelto para indexarlo en nuestro Árbol AVL.
- * Además, extraemos los hashtags del texto para indexarlos en nuestro mapa.
- * @param nuevo Referencia constante al objeto Cuac que queremos insertar.
+ * Primero movemos el cuac a nuestra Tabla Hash (que es la dueña del objeto)
+ * y usamos el puntero devuelto para indexarlo en nuestro Árbol AVL y demás índices.
+ * @param nuevo Objeto Cuac recibido por VALOR para permitir movimiento.
  */
-void DiccionarioCuacs::insertar(const Cuac &nuevo){
+void DiccionarioCuacs::insertar(Cuac nuevo){
 
     bool es_nuevo_usuario = false;
 
-    // 1. Guardamos el cuac en la TablaHash y detectamos si el usuario es nuevo en una sola operación
-    // Esto nos ahorra calcular el Hash y recorrer los buckets dos veces.
-    // Obtenemos el puntero al cuac insertado para usarlo en el árbol AVL y en el índice de hashtags
-    Cuac* pt = _tabla_usuarios.insertar(nuevo, &es_nuevo_usuario); 
+    // 1. Movemos el cuac a la TablaHash (propietaria final) y obtenemos su dirección fija
+    Cuac* pt = _tabla_usuarios.insertar(std::move(nuevo), &es_nuevo_usuario); 
     
     // Si la inserción fue exitosa (pt no es nulo), procedemos a indexarlo
     if (pt != nullptr) {

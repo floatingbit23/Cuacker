@@ -10,7 +10,6 @@
 using std::cout;
 using std::cin;
 using std::string;
-using std::endl;
 using std::cerr;
 using std::list;
 using std::getline;
@@ -45,7 +44,7 @@ void Interprete::ejecutarCuacker(){
 
     // 5. Informamos al usuario de los cuacs cargados (si los hay)
     if (!cargados.empty()) {
-        cout << "[i] Base de datos restaurada. " << _servicio_datos.numElem() << " cuacs disponibles." << endl;
+        cout << "[i] Base de datos restaurada. " << _servicio_datos.numElem() << " cuacs disponibles.\n";
     }
 
     string comando;
@@ -57,7 +56,7 @@ void Interprete::ejecutarCuacker(){
         if (comando == "exit"){
 
             // La conexión SQLite se cierra automáticamente al salir del scope
-            cout << "[i] Hasta la proxima!" << endl;
+            cout << "[i] Hasta la proxima!\n";
             break; // Salimos del bucle y finaliza el programa
 
         } else if (comando == "check") { 
@@ -76,7 +75,7 @@ void Interprete::ejecutarCuacker(){
                 _servicio_datos.insertar(c); // Inserta en TablaHash+ArbolAVL+Índices Y en SQLite (guardado automático)
 
                 // Informamos al usuario de cuántas publicaciones totales gestionamos ahora
-                cout << _servicio_datos.numElem() << " cuac" << endl;
+                cout << _servicio_datos.numElem() << " cuac\n";
             }
 
         } else if (comando == "last"){ // ej. "last 5"
@@ -101,7 +100,7 @@ void Interprete::ejecutarCuacker(){
             cin >> usuario;
  
             if (!_servicio_datos.existeUsuario(usuario)) {
-                cout << "[!] El usuario '" << usuario << "' no esta registrado en Cuacker." << endl;
+                cout << "[!] El usuario '" << usuario << "' no esta registrado en Cuacker.\n";
             } else {
 
                 // Si hay login activo, registramos la relación de seguimiento
@@ -109,10 +108,10 @@ void Interprete::ejecutarCuacker(){
 
                     // No permitimos seguirse a uno mismo
                     if (usuario == _usuario_activo) {
-                        cout << "[!] No puedes seguirte a ti mismo." << endl;
+                        cout << "[!] No puedes seguirte a ti mismo.\n";
                     } else {
                         _servicio_datos.seguir(_usuario_activo, usuario);
-                        cout << "[i] Ahora sigues a '" << usuario << "'." << endl;
+                        cout << "[i] Ahora sigues a '" << usuario << "'.\n";
                     }
                 }
 
@@ -166,26 +165,26 @@ void Interprete::ejecutarCuacker(){
         } else if (comando == "help"){ // ej. "help"
 
             // Mostramos la lista de comandos disponibles
-            cout << "\n=== [i] Comandos disponibles en Cuacker ===" << endl;
-            cout << "  mcuac <usuario> <fecha> <mensaje>  - Publicar un cuac manual" << endl;
-            cout << "  pcuac <usuario> <fecha> <numero>   - Publicar un cuac predefinido" << endl;
-            cout << "  last <N>                           - Ver los ultimos N cuacs" << endl;
-            cout << "  follow <usuario>                   - Seguir a un usuario (y ver sus cuacs)" << endl;
-            cout << "  unfollow <usuario>                 - Dejar de seguir a un usuario" << endl;
-            cout << "  following                          - Ver a quien sigues" << endl;
-            cout << "  followers                          - Ver quien te sigue" << endl;
-            cout << "  delete <id>                        - Borrar un cuac permanentemente" << endl;
-            cout << "  date <fecha_ini> <fecha_fin>       - Cuacs en un rango de fechas" << endl;
-            cout << "  tag <#hashtag>                     - Buscar por hashtag" << endl;
-            cout << "  search <texto>                     - Buscar texto en los cuacs" << endl;
-            cout << "  stats                              - Estadisticas del sistema" << endl;
-            cout << "  check                              - Verificar integridad de la BBDD" << endl;
-            cout << "  login <usuario>                    - Iniciar sesion" << endl;
-            cout << "  logout                             - Cerrar sesion" << endl;
-            cout << "  whoami                             - Ver usuario activo" << endl;
-            cout << "  help                               - Mostrar esta ayuda" << endl;
-            cout << "  exit                               - Cerrar Cuacker" << endl;
-            cout << "=============================\n" << endl;
+            cout << "\n=== [i] Comandos disponibles en Cuacker ===\n";
+            cout << "  mcuac <usuario> <fecha> <mensaje>  - Publicar un cuac manual\n";
+            cout << "  pcuac <usuario> <fecha> <numero>   - Publicar un cuac predefinido\n";
+            cout << "  last <N>                           - Ver los ultimos N cuacs\n";
+            cout << "  follow <usuario>                   - Seguir a un usuario (y ver sus cuacs)\n";
+            cout << "  unfollow <usuario>                 - Dejar de seguir a un usuario\n";
+            cout << "  following                          - Ver a quien sigues\n";
+            cout << "  followers                          - Ver quien te sigue\n";
+            cout << "  delete <id>                        - Borrar un cuac permanentemente\n";
+            cout << "  date <fecha_ini> <fecha_fin>       - Cuacs en un rango de fechas\n";
+            cout << "  tag <#hashtag>                     - Buscar por hashtag\n";
+            cout << "  search <texto>                     - Buscar texto en los cuacs\n";
+            cout << "  stats                              - Estadisticas del sistema\n";
+            cout << "  check                              - Verificar integridad de la BBDD\n";
+            cout << "  login <usuario>                    - Iniciar sesion\n";
+            cout << "  logout                             - Cerrar sesion\n";
+            cout << "  whoami                             - Ver usuario activo\n";
+            cout << "  help                               - Mostrar esta ayuda\n";
+            cout << "  exit                               - Cerrar Cuacker\n";
+            cout << "=============================\n\n";
 
         } else if (comando == "login"){ // ej. "login alice"
 
@@ -205,15 +204,15 @@ void Interprete::ejecutarCuacker(){
                 cout << " Siguiendo a " << seguidos.size() << " usuario(s).";
             }
 
-            cout << endl;
+            cout << "\n";
 
         } else if (comando == "logout"){ // ej. "logout"
 
             // Cerramos la sesión del usuario activo
             if (_usuario_activo.empty()) {
-                cout << "[!] No hay sesion activa." << endl;
+                cout << "[!] No hay sesion activa.\n";
             } else {
-                cout << "[i] Sesion de '" << _usuario_activo << "' cerrada. Timeline global restaurado." << endl;
+                cout << "[i] Sesion de '" << _usuario_activo << "' cerrada. Timeline global restaurado.\n";
                 _usuario_activo.clear();
             }
 
@@ -221,9 +220,9 @@ void Interprete::ejecutarCuacker(){
 
             // Mostramos el usuario activo actual
             if (_usuario_activo.empty()) {
-                cout << "[i] No hay sesion activa. Usa 'login <usuario>' para iniciar sesion." << endl;
+                cout << "[i] No hay sesion activa. Usa 'login <usuario>' para iniciar sesion.\n";
             } else {
-                cout << "[i] Sesion activa: " << _usuario_activo << endl;
+                cout << "[i] Sesion activa: " << _usuario_activo << "\n";
             }
 
         } else if (comando == "unfollow"){ // ej. "unfollow bob"
@@ -233,14 +232,14 @@ void Interprete::ejecutarCuacker(){
             cin >> usuario;
 
             if (_usuario_activo.empty()) {
-                cout << "[!] Necesitas iniciar sesion para usar 'unfollow'. Usa 'login <usuario>'." << endl;
+                cout << "[!] Necesitas iniciar sesion para usar 'unfollow'. Usa 'login <usuario>'.\n";
             } else {
                 bool eliminado = _servicio_datos.dejarDeSeguir(_usuario_activo, usuario);
 
                 if (eliminado) {
-                    cout << "[i] Has dejado de seguir a '" << usuario << "'." << endl;
+                    cout << "[i] Has dejado de seguir a '" << usuario << "'.\n";
                 } else {
-                    cout << "[!] No sigues a '" << usuario << "'." << endl;
+                    cout << "[!] No sigues a '" << usuario << "'.\n";
                 }
             }
 
@@ -248,21 +247,21 @@ void Interprete::ejecutarCuacker(){
 
             // Mostramos la lista de usuarios que sigue el usuario activo
             if (_usuario_activo.empty()) {
-                cout << "[!] Necesitas iniciar sesion para usar 'following'. Usa 'login <usuario>'." << endl;
+                cout << "[!] Necesitas iniciar sesion para usar 'following'. Usa 'login <usuario>'.\n";
             } else {
                 const unordered_set<string>& seguidos = _servicio_datos.getSeguidos(_usuario_activo);
 
                 if (seguidos.empty()) {
-                    cout << "[i] No sigues a nadie." << endl;
+                    cout << "[i] No sigues a nadie.\n";
                 } else {
-                    cout << "\n=== Usuarios que sigue " << _usuario_activo << " ===" << endl;
+                    cout << "\n=== Usuarios que sigue " << _usuario_activo << " ===\n";
                     int contador = 1;
                     for (const string& s : seguidos) {
-                        cout << "  " << contador << ". " << s << endl;
+                        cout << "  " << contador << ". " << s << "\n";
                         contador++;
                     }
-                    cout << "Total: " << seguidos.size() << " usuario(s)" << endl;
-                    cout << "============================\n" << endl;
+                    cout << "Total: " << seguidos.size() << " usuario(s)\n";
+                    cout << "============================\n\n";
                 }
             }
 
@@ -270,27 +269,27 @@ void Interprete::ejecutarCuacker(){
 
             // Mostramos la lista de seguidores del usuario activo (consulta directa a SQLite)
             if (_usuario_activo.empty()) {
-                cout << "[!] Necesitas iniciar sesion para usar 'followers'. Usa 'login <usuario>'." << endl;
+                cout << "[!] Necesitas iniciar sesion para usar 'followers'. Usa 'login <usuario>'.\n";
             } else {
                 list<string> seguidores = db.cargarSeguidores(_usuario_activo);
 
                 if (seguidores.empty()) {
-                    cout << "[i] Nadie te sigue (todavia)." << endl;
+                    cout << "[i] Nadie te sigue (todavia).\n";
                 } else {
-                    cout << "\n=== Seguidores de " << _usuario_activo << " ===" << endl;
+                    cout << "\n=== Seguidores de " << _usuario_activo << " ===\n";
                     int contador = 1;
                     for (const string& s : seguidores) {
-                        cout << "  " << contador << ". " << s << endl;
+                        cout << "  " << contador << ". " << s << "\n";
                         contador++;
                     }
-                    cout << "Total: " << seguidores.size() << " seguidor(es)" << endl;
-                    cout << "============================\n" << endl;
+                    cout << "Total: " << seguidores.size() << " seguidor(es)\n";
+                    cout << "============================\n\n";
                 }
             }
 
         } else {
             // Informamos al usuario de que no reconocemos el comando introducido
-            cerr << "Error: comando '" << comando << "' no reconocido. Escribe 'help' para ver la lista de comandos disponibles. " << endl;
+            cerr << "Error: comando '" << comando << "' no reconocido. Escribe 'help' para ver la lista de comandos disponibles. \n";
         }
 
         // Refuerzo: Si algun comando dejo 'cin' en estado de error, lo limpiamos aqui para no morir

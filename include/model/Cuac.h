@@ -12,21 +12,25 @@
 
 class Cuac {
 
-    private:
-        // Identificador numérico que usamos para mensajes predefinidos (pcuac)
-        int _numero_predefinido;
-
-        // Definimos las cadenas para almacenar el contenido, el autor y el tipo de cuac
+    private: 
+        
+        // Definimos las cadenas para almacenar el contenido, el autor y el tipo de cuac (alineamiento 8 bytes)
         std::string _mensaje;    // Contenido textual (limitado idealmente a 140 caracteres)
         std::string _usuario;    // Nombre del usuario que publica
         std::string _tipo_cuac;  // Puede ser "mcuac" (manual) o "pcuac" (predefinido)
 
-        // Almacenamos la fecha de publicación usando nuestra clase Fecha
+        // Identificador numérico que usamos para mensajes predefinidos, pcuac (alineamiento 4 bytes)
+        int _numero_predefinido;
+        // Añadimos un ID único (alineamiento 4 bytes)
+        int _id;
+        
+        // Almacenamos la fecha de publicación usando nuestra clase Fecha (alineamiento 24 bytes)
         Fecha _fecha;
 
-        // Añadimos un ID único y un contador estático (para gestionar el ID autoincremental)
-        int _id;
+        // Añadimos un contador estático (para gestionar el ID autoincremental) (vive en memoria global, no causa padding)
         static int _contador_id;
+
+        /* 0 bytes de padding */
 
     public:
 

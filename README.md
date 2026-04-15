@@ -31,6 +31,10 @@ Motor de gestión de datos de alto rendimiento desarrollado en C++. El proyecto 
    - **Timeline personalizado**: el comando `last` muestra solo los cuacs de los usuarios seguidos + los propios cuando hay sesión activa.
    - Sistema de sesión ligero con `login`/`logout` — sin login, el sistema funciona en modo global (retrocompatible).
 
+6. **Arquitectura Zero-Padding**: Estructura de memoria de 128 bytes optimizada para eliminar el *padding* y maximizar la caché L1/L2.
+7. **Semántica de Movimiento**: Uso de `std::move` y `emplace_back` en todo el motor para evitar copias de memoria innecesarias.
+8. **Tuning de SQLite**: Modo *Write-Ahead Logging* (WAL) y sincronía *NORMAL* para persistencia masiva de alta velocidad.
+
 ## Comandos Disponibles
 
 ### Publicación y Búsqueda

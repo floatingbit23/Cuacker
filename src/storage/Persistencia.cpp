@@ -22,13 +22,16 @@ Persistencia::Persistencia(const std::string& ruta_db)
     _db.reset(raw_db); // Dejamos que unique_ptr tome la propiedad
 
     if (rc != SQLITE_OK) {
-        std::cerr << "[!] Error critico al abrir la base de datos: " << sqlite3_errmsg(_db.get()) << std::endl;
+        std::cerr << "[!] Error critico al abrir la base de datos: " << sqlite3_errmsg(_db.get()) << "\n";
         _db.reset();
         return;
     }
 
-    // Activamos el modo WAL
+    // === OPTIMIZACION SQLITE ===
+    // WAL (Write-Ahead Logging) permite lecturas y escrituras simultaneas sin bloqueos.
     sqlite3_exec(_db.get(), "PRAGMA journal_mode=WAL;", nullptr, nullptr, nullptr);
+    // NORMAL reduce las esperas de flush a disco sin comprometer la integridad en WAL.
+    sqlite3_exec(_db.get(), "PRAGMA synchronous=NORMAL;", nullptr, nullptr, nullptr);
 
     crearEsquema();
 
@@ -43,7 +46,7 @@ Persistencia::Persistencia(const std::string& ruta_db)
     _stmt_insertar.reset(raw_insert);
 
     if (rc != SQLITE_OK) {
-        std::cerr << "[!] Error al preparar INSERT: " << sqlite3_errmsg(_db.get()) << std::endl;
+        std::cerr << "[!] Error al preparar INSERT: " << sqlite3_errmsg(_db.get()) << "\n";
     }
 
     sqlite3_stmt* raw_delete = nullptr;
@@ -51,7 +54,7 @@ Persistencia::Persistencia(const std::string& ruta_db)
     _stmt_eliminar.reset(raw_delete);
     
     if (rc != SQLITE_OK) {
-        std::cerr << "[!] Error al preparar DELETE: " << sqlite3_errmsg(_db.get()) << std::endl;
+        std::cerr << "[!] Error al preparar DELETE: " << sqlite3_errmsg(_db.get()) << "\n";
     }
 
     // Prepared statements para el GRAFO SOCIAL
@@ -63,7 +66,7 @@ Persistencia::Persistencia(const std::string& ruta_db)
     _stmt_seguir.reset(raw_seguir);
 
     if (rc != SQLITE_OK) {
-        std::cerr << "[!] Error al preparar FOLLOW: " << sqlite3_errmsg(_db.get()) << std::endl;
+        std::cerr << "[!] Error al preparar FOLLOW: " << sqlite3_errmsg(_db.get()) << "\n";
     }
 
     sqlite3_stmt* raw_dejar = nullptr;
@@ -71,7 +74,7 @@ Persistencia::Persistencia(const std::string& ruta_db)
     _stmt_dejar.reset(raw_dejar);
 
     if (rc != SQLITE_OK) {
-        std::cerr << "[!] Error al preparar UNFOLLOW: " << sqlite3_errmsg(_db.get()) << std::endl;
+        std::cerr << "[!] Error al preparar UNFOLLOW: " << sqlite3_errmsg(_db.get()) << "\n";
     }
 }
 
@@ -115,7 +118,7 @@ void Persistencia::crearEsquema() {
 
     // Si la creación de la tabla falla, mostramos un error y salimos
     if (rc != SQLITE_OK) {
-        std::cerr << "[!] Error al crear tabla: " << err_msg << std::endl;
+        std::cerr << "[!] Error al crear tabla: " << err_msg << "\n";
         sqlite3_free(err_msg);
     }
 
@@ -124,7 +127,7 @@ void Persistencia::crearEsquema() {
 
     // Si la creación del índice falla, mostramos un error y salimos
     if (rc != SQLITE_OK) {
-        std::cerr << "[!] Error al crear indice usuario: " << err_msg << std::endl;
+        std::cerr << "[!] Error al crear indice usuario: " << err_msg << "\n";
         sqlite3_free(err_msg);
     }
 
@@ -133,7 +136,7 @@ void Persistencia::crearEsquema() {
     
     // Si la creación del índice falla, mostramos un error y salimos
     if (rc != SQLITE_OK) {
-        std::cerr << "[!] Error al crear indice fecha: " << err_msg << std::endl;
+        std::cerr << "[!] Error al crear indice fecha: " << err_msg << "\n";
         sqlite3_free(err_msg);
     }
 
@@ -154,7 +157,7 @@ void Persistencia::crearEsquema() {
     rc = sqlite3_exec(_db.get(), sql_crear_seguidores, nullptr, nullptr, &err_msg);
 
     if (rc != SQLITE_OK) {
-        std::cerr << "[!] Error al crear tabla seguidores: " << err_msg << std::endl;
+        std::cerr << "[!] Error al crear tabla seguidores: " << err_msg << "\n";
         sqlite3_free(err_msg);
     }
 
@@ -162,7 +165,7 @@ void Persistencia::crearEsquema() {
     rc = sqlite3_exec(_db.get(), sql_indice_seguido, nullptr, nullptr, &err_msg);
 
     if (rc != SQLITE_OK) {
-        std::cerr << "[!] Error al crear indice seguidores: " << err_msg << std::endl;
+        std::cerr << "[!] Error al crear indice seguidores: " << err_msg << "\n";
         sqlite3_free(err_msg);
     }
 }
@@ -200,7 +203,7 @@ std::list<Cuac> Persistencia::cargar() {
     rc = sqlite3_prepare_v2(_db.get(), "SELECT id, usuario, dia, mes, anio, hora, minuto, segundo, tipo_cuac, mensaje, numero_predefinido FROM cuacs;", -1, &stmt_select, nullptr);
 
     if (rc != SQLITE_OK) {
-        std::cerr << "[!] Error al preparar SELECT: " << sqlite3_errmsg(_db.get()) << std::endl;
+        std::cerr << "[!] Error al preparar SELECT: " << sqlite3_errmsg(_db.get()) << "\n";
         return cuacs;
     }
 
@@ -231,9 +234,9 @@ std::list<Cuac> Persistencia::cargar() {
         // Reconstruimos el objeto Fecha a partir de los 6 campos separados
         Fecha f(dia, mes, anio, hora, minuto, segundo);
 
-        // Creamos el Cuac con el constructor de ID explícito (NO incrementa el contador)
-        Cuac c(id, usuario, f, tipo_cuac, mensaje, numero_predefinido);
-        cuacs.push_back(c);
+        // Construimos el Cuac directamente en el vector (emplace_back) moviendo los strings
+        // Esto evita copias de memoria temporales.
+        cuacs.emplace_back(id, std::move(usuario), f, std::move(tipo_cuac), std::move(mensaje), numero_predefinido);
     }
 
     sqlite3_finalize(stmt_select);
@@ -269,7 +272,7 @@ void Persistencia::insertar(const Cuac& cuac) {
     int rc = sqlite3_step(_stmt_insertar.get());
 
     if (rc != SQLITE_DONE) {
-        std::cerr << "[!] Error al insertar cuac #" << cuac.get_id() << ": " << sqlite3_errmsg(_db.get()) << std::endl;
+        std::cerr << "[!] Error al insertar cuac #" << cuac.get_id() << ": " << sqlite3_errmsg(_db.get()) << "\n";
     }
 
     // Reseteamos el statement para reutilizarlo en la siguiente inserción
@@ -293,7 +296,7 @@ void Persistencia::eliminar(int id_cuac) {
     int rc = sqlite3_step(_stmt_eliminar.get());
 
     if (rc != SQLITE_DONE) {
-        std::cerr << "[!] Error al eliminar cuac #" << id_cuac << ": " << sqlite3_errmsg(_db.get()) << std::endl;
+        std::cerr << "[!] Error al eliminar cuac #" << id_cuac << ": " << sqlite3_errmsg(_db.get()) << "\n";
     }
 
     // Reseteamos el statement para reutilizarlo en la siguiente eliminación
@@ -309,7 +312,7 @@ void Persistencia::eliminar(int id_cuac) {
 bool Persistencia::verificarIntegridad() {
 
     if (!_db.get()) {
-        std::cerr << "[!] No hay conexion activa a la base de datos." << std::endl;
+        std::cerr << "[!] No hay conexion activa a la base de datos." << "\n";
         return false;
     }
 
@@ -317,19 +320,19 @@ bool Persistencia::verificarIntegridad() {
     int rc = sqlite3_prepare_v2(_db.get(), "PRAGMA integrity_check;", -1, &stmt, nullptr);
 
     if (rc != SQLITE_OK) {
-        std::cerr << "[!] Error al ejecutar verificacion: " << sqlite3_errmsg(_db.get()) << std::endl;
+        std::cerr << "[!] Error al ejecutar verificacion: " << sqlite3_errmsg(_db.get()) << "\n";
         return false;
     }
 
     bool integra = true;
 
-    std::cout << "\n=== Verificacion de Integridad SQLite ===" << std::endl;
+    std::cout << "\n=== Verificacion de Integridad SQLite ===" << "\n";
 
     while (sqlite3_step(stmt) == SQLITE_ROW) {
         const char* resultado = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
 
         if (resultado) {
-            std::cout << "  " << resultado << std::endl;
+            std::cout << "  " << resultado << "\n";
 
             // Si el resultado no es "ok", hay un problema
             if (std::string(resultado) != "ok") {
@@ -341,12 +344,12 @@ bool Persistencia::verificarIntegridad() {
     sqlite3_finalize(stmt);
 
     if (integra) {
-        std::cout << "[i] Base de datos integra. Sin problemas detectados." << std::endl;
+        std::cout << "[i] Base de datos integra. Sin problemas detectados." << "\n";
     } else {
-        std::cerr << "[!] Se detectaron problemas en la base de datos." << std::endl;
+        std::cerr << "[!] Se detectaron problemas en la base de datos." << "\n";
     }
 
-    std::cout << "=========================================\n" << std::endl;
+    std::cout << "=========================================\n" << "\n";
 
     return integra;
 }
@@ -371,7 +374,7 @@ void Persistencia::seguir(const std::string& seguidor, const std::string& seguid
     int rc = sqlite3_step(_stmt_seguir.get());
 
     if (rc != SQLITE_DONE) {
-        std::cerr << "[!] Error al registrar seguimiento: " << sqlite3_errmsg(_db.get()) << std::endl;
+        std::cerr << "[!] Error al registrar seguimiento: " << sqlite3_errmsg(_db.get()) << "\n";
     }
 
     // Reseteamos para reutilizar
@@ -396,7 +399,7 @@ void Persistencia::dejarDeSeguir(const std::string& seguidor, const std::string&
     int rc = sqlite3_step(_stmt_dejar.get());
 
     if (rc != SQLITE_DONE) {
-        std::cerr << "[!] Error al eliminar seguimiento: " << sqlite3_errmsg(_db.get()) << std::endl;
+        std::cerr << "[!] Error al eliminar seguimiento: " << sqlite3_errmsg(_db.get()) << "\n";
     }
 
     // Reseteamos para reutilizar
@@ -420,7 +423,7 @@ std::list<std::string> Persistencia::cargarSeguidos(const std::string& usuario) 
     int rc = sqlite3_prepare_v2(_db.get(), "SELECT seguido FROM seguidores WHERE seguidor = ?;", -1, &stmt, nullptr);
 
     if (rc != SQLITE_OK) {
-        std::cerr << "[!] Error al cargar seguidos: " << sqlite3_errmsg(_db.get()) << std::endl;
+        std::cerr << "[!] Error al cargar seguidos: " << sqlite3_errmsg(_db.get()) << "\n";
         return seguidos;
     }
 
@@ -454,7 +457,7 @@ std::list<std::string> Persistencia::cargarSeguidores(const std::string& usuario
     int rc = sqlite3_prepare_v2(_db.get(), "SELECT seguidor FROM seguidores WHERE seguido = ?;", -1, &stmt, nullptr);
 
     if (rc != SQLITE_OK) {
-        std::cerr << "[!] Error al cargar seguidores: " << sqlite3_errmsg(_db.get()) << std::endl;
+        std::cerr << "[!] Error al cargar seguidores: " << sqlite3_errmsg(_db.get()) << "\n";
         return seguidores;
     }
 
@@ -482,7 +485,7 @@ void Persistencia::ejecutar_comando(const std::string& sql) {
     char* zErrMsg = nullptr;
     int rc = sqlite3_exec(_db.get(), sql.c_str(), nullptr, nullptr, &zErrMsg);
     if (rc != SQLITE_OK) {
-        std::cerr << "[!] Error SQL en ejecutar_comando (" << sql << "): " << zErrMsg << std::endl;
+        std::cerr << "[!] Error SQL en ejecutar_comando (" << sql << "): " << zErrMsg << "\n";
         sqlite3_free(zErrMsg);
     }
 }

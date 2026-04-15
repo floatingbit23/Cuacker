@@ -31,6 +31,12 @@ A high-performance data management engine developed in C++. This project simulat
    - **Personalised timeline**: the `last` command shows only cuacs from followed users + your own when a session is active.
    - Lightweight session system via `login`/`logout` — without login, the system runs in global mode (fully backwards-compatible).
 
+6. **Zero-Padding Architecture**: Optimized 128-byte memory layout to eliminate padding and maximize L1/L2 cache efficiency.
+
+7. **Move Semantics**: Engine-wide implementation of `std::move` and `emplace_back` to prevent redundant memory copies.
+
+8. **SQLite Tuning**: *Write-Ahead Logging* (WAL) and *NORMAL* synchronicity for high-speed, non-blocking mass persistence.
+
 ## Available Commands
 
 ### Posting & Search

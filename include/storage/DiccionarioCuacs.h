@@ -90,9 +90,10 @@ public:
   DiccionarioCuacs();
 
   /**
-   * @brief Insertamos una nueva publicación en ambas estructuras (TablaHash y ArbolAVL) sincronizadamente.
+   * @brief Insertamos una nueva publicación en ambas estructuras sincronizadamente.
+   * Al recibir por valor, permitimos que el objeto se mueva hacia la TablaHash.
    */
-  void insertar(const Cuac &nuevo);
+  void insertar(Cuac nuevo);
 
   /**
    * @brief Elimina una publicación de todo el sistema dado su ID (Nivel 3).

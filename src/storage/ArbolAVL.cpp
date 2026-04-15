@@ -6,7 +6,6 @@
 
 using std::list;
 using std::cout;
-using std::endl;
 using std::max;
 using std::string;
 using std::unordered_set;
@@ -205,7 +204,7 @@ void Arbol_AVL::last(int cantidad_a_mostrar) {
     int restantes = cantidad_a_mostrar;
     int contador_posicion = 1;
     buscar_ultimos_recursivo(_raiz.get(), restantes, contador_posicion);
-    cout << "Total: " << cantidad_a_mostrar - max(0, restantes) << " cuac" << endl;
+    cout << "Total: " << cantidad_a_mostrar - max(0, restantes) << " cuac" << "\n";
 }
 
 void Arbol_AVL::buscar_ultimos_recursivo(Nodo* nodo_actual, int& cuacs_restantes, int& contador_posicion) {
@@ -256,7 +255,7 @@ void Arbol_AVL::buscar_por_rango_recursivo(Nodo* nodo_actual, const Fecha& fecha
 void Arbol_AVL::search(const string& texto) {
     int contador_total = 0;
     buscar_texto_recursivo(_raiz.get(), texto, contador_total);
-    cout << "Total: " << contador_total << " cuac" << endl;
+    cout << "Total: " << contador_total << " cuac" << "\n";
 }
 
 void Arbol_AVL::buscar_texto_recursivo(Nodo* nodo_actual, const string& texto, int& contador_total) {
@@ -280,7 +279,7 @@ void Arbol_AVL::lastFiltrado(int cantidad_a_mostrar, const unordered_set<string>
     int restantes = cantidad_a_mostrar;
     int contador_posicion = 1;
     buscar_ultimos_filtrado_recursivo(_raiz.get(), restantes, contador_posicion, usuarios_permitidos);
-    cout << "Total: " << cantidad_a_mostrar - max(0, restantes) << " cuac" << endl;
+    cout << "Total: " << cantidad_a_mostrar - max(0, restantes) << " cuac" << "\n";
 }
 
 void Arbol_AVL::buscar_ultimos_filtrado_recursivo(Nodo* nodo_actual, int& cuacs_restantes,
