@@ -12,7 +12,6 @@ cuacker
 
 # Documentation
 docs/
-Doxyfile
 *.txt
 
 # Archives
@@ -53,3 +52,6 @@ cuacs.db-wal
 *.db-shm
 *.db-wal
 stress_test.exe
+
+# Doxygen
+mathjax_config.js
